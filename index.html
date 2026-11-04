@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Непросто ручка — 5 в 1</title>
+<style>
+  :root {
+    --green: #1a7f37;
+    --green-light: #eaf5ec;
+    --black: #111;
+    --gray: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: var(--black);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-align: center;
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Шапка */
+  header {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 24px 0;
+  }
+  header .wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--green); }
+  .tagline {
+    font-size: 14px;
+    color: var(--gray);
+  }
+
+  /* Герой */
+  .hero {
+    padding: 56px 0 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    font-size: 17px;
+    color: var(--gray);
+    max-width: 560px;
+  }
+  .hero .accent {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* Цена в герое */
+  .hero-price {
+    margin-top: 18px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--black);
+  }
+  .hero-price .accent {
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  /* Заголовок «Корпус» */
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 8px 0 0;
+    text-align: center;
+  }
+
+  /* Карточки — по центру */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 280px));
+    gap: 16px;
+    padding: 16px 0 8px;
+    justify-content: center;
+  }
+  .card {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .card:hover {
+    border-color: #bbb;
+    transform: translateY(-2px);
+  }
+  .card.selected {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green);
+  }
+
+  /* Фото-галерея при наведении */
+  .card .photo {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+    overflow: hidden;
+    z-index: 5;
+  }
+  .card:hover .photo {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .card .photo .gallery {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card .photo .gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 12px;
+    display: none;
+  }
+  .card .photo .gallery img.active { display: block; }
+
+  /* Точки — создаются скриптом */
+  .card .photo .dots {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+  .card .photo .dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: #ccc;
+    cursor: pointer;
+    padding: 0;
+    transition: background .15s;
+  }
+  .card .photo .dots button.active { background: var(--green); }
+
+  /* Стрелки */
+  .card .photo .nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: rgba(255,255,255,.9);
+    color: var(--black);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: border-color .15s, color .15s;
+  }
+  .card .photo .nav:hover { border-color: var(--green); color: var(--green); }
+  .card .photo .nav.prev { left: 8px; }
+  .card .photo .nav.next { right: 8px; }
+
+  .card .badge {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-bottom: 10px;
+  }
+  .card h3 {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+  .card .desc {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 14px;
+    min-height: 40px;
+  }
+
+  /* Размер — общий блок, как цвет */
+  .sizes-block {
+    padding: 24px 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sizes-block h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .sizes {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* Кнопка размера: при наведении показываем длину стержня вместо названия */
+  .size-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--black);
+    transition: border-color .15s, color .15s, background .15s;
+    position: relative;
+    min-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .size-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .size-btn.selected {
+    border-color: var(--green);
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .size-btn .label { display: inline-block; }
+  .size-btn .stem {
+    display: none;
+    font-weight: 400;
+    font-size: 13px;
+  }
+  .size-btn:hover .label { display: none; }
+  .size-btn:hover .stem { display: inline; }
+
+  /* Функции */
+  .functions-block {
+    padding: 24px 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .functions-block h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .functions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .function-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--black);
+    transition: background .15s, border-color .15s, color .15s;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1.2;
+  }
+  .function-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .function-btn.selected {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: var(--green);
+    font-weight: 600;
+  }
+  .function-btn .name {
+    font-size: 14px;
+    font-weight: inherit;
+  }
+  .function-btn .plus {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--green);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height .15s, opacity .15s;
+  }
+  .function-btn.selected .plus {
+    max-height: 20px;
+    opacity: 1;
+  }
+
+  /* Выбор цвета */
+  .colors-block {
+    padding: 24px 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .colors-block h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .color-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    font-family: inherit;
+    color: var(--black);
+  }
+  .color-btn:hover {
+    background: var(--c);
+    border-color: var(--c);
+    color: var(--text, #fff);
+  }
+  .color-btn.selected {
+    background: var(--c);
+    border-color: var(--c);
+    color: var(--text, #fff);
+    font-weight: 600;
+  }
+  .color-btn[data-color="Белый"],
+  .color-btn[data-color="Серый"],
+  .color-btn[data-color="Зелёный"]{
+    --text: #111;
+  }
+
+  /* Итог, контакт и кнопка */
+  .order-block {
+    padding: 32px 0 64px;
+    border-top: 1px solid #e5e5e5;
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .summary {
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 16px;
+    min-height: 20px;
+    line-height: 1.7;
+  }
+  .summary b { color: var(--black); }
+  .summary .green { color: var(--green); font-weight: 600; }
+  .summary .total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--black);
+  }
+  .summary .total .green { font-size: 18px; }
+
+  /* Поле контакта */
+  .contact-field {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 12px;
+  }
+  .contact-field label {
+    display: block;
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 6px;
+    text-align: left;
+  }
+  .contact-field input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--black);
+    background: #fff;
+    transition: border-color .15s;
+  }
+  .contact-field input:focus {
+    outline: none;
+    border-color: var(--green);
+  }
+  .contact-field input.invalid {
+    border-color: #d32f2f;
+  }
+  .contact-error {
+    font-size: 12px;
+    color: #d32f2f;
+    text-align: left;
+    margin-top: 4px;
+    min-height: 16px;
+  }
+
+  .btn-order {
+    display: inline-block;
+    background: var(--black);
+    color: #fff;
+    text-decoration: none;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background .15s, opacity .15s;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-order:hover { background: var(--green); }
+  .btn-order.disabled {
+    background: #ccc;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 10px;
+  }
+  /* Сообщение после отправки */
+  .order-message {
+    font-size: 14px;
+    margin-top: 14px;
+    min-height: 20px;
+  }
+  .order-message.ok { color: var(--green); font-weight: 600; }
+  .order-message.err { color: #d32f2f; font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .cards { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 26px; }
+    .hero { padding: 40px 0 24px; }
+    .card .photo { opacity: 1; position: static; margin-bottom: 12px; border-radius: 8px; height: 160px; }
+    .card .desc, .card .badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo"><span>не</span>просто ручка</div>
+    <div class="tagline">Весь пенал в твоих руках</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1>Непросто ручка</h1>
+    <p>
+      Одна ручка — <span class="accent">пять функций</span>.
+      <br>Собери свою ручку сам по цене айс-латте
+    </p>
+    <div class="hero-price">от <span class="accent">250 ₽</span></div>
+  </section>
+
+  <!-- Карточки товаров -->
+  <h3 class="section-title">Корпус</h3>
+  <section class="cards" id="cards">
+    <div class="card" data-id="just" data-name="JUST" data-base="250">
+      <div class="photo">
+        <div class="gallery">
+          <img src="img/j1.jpeg" alt="JUST 1" class="active">
+          <img src="img/j2.jpeg" alt="JUST 2">
+          <img src="img/j3.jpeg" alt="JUST 3">
+          <img src="img/j4.jpeg" alt="JUST 4">
+        </div>
+        <button class="nav prev" type="button" aria-label="Назад">‹</button>
+        <button class="nav next" type="button" aria-label="Вперёд">›</button>
+        <div class="dots"></div>
+      </div>
+      <span class="badge">Классика</span>
+      <h3>JUST</h3>
+      <p class="desc">Один конец — ручка, другой — карандаш. Остальное на корпусе</p>
+    </div>
+
+    <div class="card" data-id="snap" data-name="SNAP" data-base="250">
+      <div class="photo">
+        <div class="gallery">
+          <img src="img/s1.jpeg" alt="SNAP 1" class="active">
+          <img src="img/s2.jpeg" alt="SNAP 2">
+          <img src="img/s3.jpeg" alt="SNAP 3">
+          <img src="img/s4.jpeg" alt="SNAP 4">
+        </div>
+        <button class="nav prev" type="button" aria-label="Назад">‹</button>
+        <button class="nav next" type="button" aria-label="Вперёд">›</button>
+        <div class="dots"></div>
+      </div>
+      <span class="badge">Хай-тек</span>
+      <h3>SNAP</h3>
+      <p class="desc">Каждая принадлежность — съёмный модуль. Для любителей конструктора</p>
+    </div>
+  </section>
+
+  <!-- Размер (общий для всех корпусов) -->
+  <section class="sizes-block">
+    <h2>Размер стержня</h2>
+    <div class="sizes" id="sizes">
+      <button class="size-btn" data-size="long">
+        <span class="label">Long</span>
+        <span class="stem">130 мм</span>
+      </button>
+      <button class="size-btn" data-size="lite">
+        <span class="label">Lite</span>
+        <span class="stem">90 мм</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Функции -->
+  <section class="functions-block">
+    <h2>Функции</h2>
+    <div class="functions" id="functions">
+      <button class="function-btn" data-function="Ручка" data-price="10">
+        <span class="name">Ручка</span>
+        <span class="plus">+10 ₽</span>
+      </button>
+      <button class="function-btn" data-function="Карандаш" data-price="10">
+        <span class="name">Карандаш</span>
+        <span class="plus">+10 ₽</span>
+      </button>
+      <button class="function-btn" data-function="Линейка" data-price="10">
+        <span class="name">Линейка</span>
+        <span class="plus">+10 ₽</span>
+      </button>
+      <button class="function-btn" data-function="Точилка" data-price="10">
+        <span class="name">Точилка</span>
+        <span class="plus">+10 ₽</span>
+      </button>
+      <button class="function-btn" data-function="Ластик" data-price="10">
+        <span class="name">Ластик</span>
+        <span class="plus">+10 ₽</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Выбор цвета -->
+  <section class="colors-block">
+    <h2>Цвет</h2>
+    <div class="colors" id="colors">
+      <button class="color-btn" data-color="Белый" style="--c:#ffffff">Белый</button>
+      <button class="color-btn" data-color="Серый" style="--c:#9e9e9e">Серый</button>
+      <button class="color-btn" data-color="Синий" style="--c:#1565c0">Синий</button>
+      <button class="color-btn" data-color="Красный" style="--c:#d32f2f">Красный</button>
+      <button class="color-btn" data-color="Оранжевый" style="--c:#f57c00">Оранжевый</button>
+      <button class="color-btn" data-color="Зелёный" style="--c:#98fb98">Зелёный</button>
+    </div>
+  </section>
+
+  <!-- Итог, контакт и заказ -->
+  <section class="order-block">
+    <div class="summary" id="summary">Выберите корпус, размер и цвет</div>
+
+    <!-- Форма для отправки в Google Apps Script -->
+    <form id="orderForm" action="https://script.google.com/macros/s/AKfycbzwGoJXqdVGUdPoS42uLQG0YWvof-Ddc03SmIE66ZfKmIyFjUgqUJCpOXABnB9PdEuykQ/exec" method="POST" target="_blank">
+      <div class="contact-field">
+        <label for="contactInput">Оставьте телефон, email или другой контакт</label>
+        <input type="text" id="contactInput" name="Контакт" placeholder="+7 900 000-00-00 или почта" autocomplete="off">
+        <div class="contact-error" id="contactError"></div>
+      </div>
+
+      <!-- Скрытые поля, которые заполняются скриптом перед отправкой -->
+      <input type="hidden" name="Корпус" id="f-corpus">
+      <input type="hidden" name="Размер" id="f-size">
+      <input type="hidden" name="Цвет" id="f-color">
+      <input type="hidden" name="Функции" id="f-funcs">
+      <input type="hidden" name="Итого" id="f-total">
+
+      <button type="submit" class="btn-order disabled" id="orderBtn">Заказать</button>
+    </form>
+
+    <p class="hint">Мы свяжемся с вами по указанному контакту.</p>
+    <div class="order-message" id="orderMessage"></div>
+  </section>
+
+</main>
+
+<script>
+  // ==== ЛОГИКА ====
+  let selectedProduct = null; // { id, name, base }
+  let selectedSize = null;    // { size }
+  let selectedColor = null;
+  let selectedFunctions = []; // [{ name, price }]
+
+  const cards = document.querySelectorAll('.card');
+  const sizeBtns = document.querySelectorAll('.size-btn');
+  const colorBtns = document.querySelectorAll('.color-btn');
+  const functionBtns = document.querySelectorAll('.function-btn');
+  const summary = document.getElementById('summary');
+  const orderBtn = document.getElementById('orderBtn');
+  const orderForm = document.getElementById('orderForm');
+  const contactInput = document.getElementById('contactInput');
+  const contactError = document.getElementById('contactError');
+  const orderMessage = document.getElementById('orderMessage');
+
+  // ==== Сбор выбранных функций ====
+  function updateFunctions() {
+    selectedFunctions = Array.from(functionBtns)
+      .filter(b => b.classList.contains('selected'))
+      .map(b => ({
+        name: b.dataset.function,
+        price: Number(b.dataset.price)
+      }));
+  }
+
+  function totalPrice() {
+    if (!selectedProduct) return 0;
+    const base = Number(selectedProduct.base);
+    const add = selectedFunctions.reduce((sum, f) => sum + f.price, 0);
+    return base + add;
+  }
+
+  function updateSummary() {
+    const ready = selectedProduct && selectedSize && selectedColor;
+
+    if (ready) {
+      const add = selectedFunctions.reduce((sum, f) => sum + f.price, 0);
+
+      let html =
+        'Выбрано: <b>' + selectedProduct.name + '</b> · ' +
+        'размер <b>' + selectedSize.size + '</b> · ' +
+        'цвет <b>' + selectedColor + '</b><br>';
+
+      if (selectedFunctions.length > 0) {
+        html += 'функции: <b>' + selectedFunctions.map(f => f.name).join(', ') + '</b> ';
+        html += '(+' + add + ' ₽)<br>';
+      } else {
+        html += 'функции не выбраны<br>';
+      }
+
+      html += 'Итого: <span class="total"><span class="green">' + totalPrice() + ' ₽</span></span>';
+      summary.innerHTML = html;
+      orderBtn.classList.remove('disabled');
+    } else {
+      const missing = [];
+      if (!selectedProduct) missing.push('корпус');
+      if (!selectedSize) missing.push('размер');
+      if (!selectedColor) missing.push('цвет');
+      summary.textContent = 'Осталось выбрать: ' + missing.join(', ');
+      orderBtn.classList.add('disabled');
+    }
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      cards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedProduct = {
+        id: card.dataset.id,
+        name: card.dataset.name,
+        base: card.dataset.base
+      };
+      updateSummary();
+    });
+  });
+
+  sizeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sizeBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedSize = { size: btn.dataset.size };
+      updateSummary();
+    });
+  });
+
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      colorBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedColor = btn.dataset.color;
+      updateSummary();
+    });
+  });
+
+  functionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      updateFunctions();
+      updateSummary();
+    });
+  });
+
+  // ==== Галерея с авто-прокруткой и автогенерацией точек ====
+  document.querySelectorAll('.card .photo').forEach(photo => {
+    const card = photo.closest('.card');
+    const imgs = photo.querySelectorAll('.gallery img');
+    const dotsWrap = photo.querySelector('.dots');
+    const prev = photo.querySelector('.nav.prev');
+    const next = photo.querySelector('.nav.next');
+    let current = 0;
+    let timer = null;
+
+    if (dotsWrap) {
+      dotsWrap.innerHTML = '';
+      imgs.forEach((_, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Фото ' + (i + 1));
+        if (i === 0) b.classList.add('active');
+        dotsWrap.appendChild(b);
+      });
+    }
+
+    const dots = dotsWrap ? dotsWrap.querySelectorAll('button') : [];
+
+    function show(index) {
+      if (!imgs.length) return;
+      current = (index + imgs.length) % imgs.length;
+      imgs.forEach((img, i) => img.classList.toggle('active', i === current));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+    }
+
+    card.addEventListener('mouseenter', () => {
+      if (imgs.length < 2) return;
+      timer = setInterval(() => show(current + 1), 1200);
+    });
+    card.addEventListener('mouseleave', () => {
+      clearInterval(timer);
+      timer = null;
+      show(0);
+    });
+
+    if (prev) prev.addEventListener('click', (e) => { e.stopPropagation(); show(current - 1); });
+    if (next) next.addEventListener('click', (e) => { e.stopPropagation(); show(current + 1); });
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', (e) => { e.stopPropagation(); show(i); });
+    });
+  });
+
+  // Инициализация
+  updateFunctions();
+  updateSummary();
+
+  // ==== Отправка формы ====
+  orderForm.addEventListener('submit', (e) => {
+    orderMessage.textContent = '';
+    orderMessage.className = 'order-message';
+
+    // Проверка, что выбраны корпус, размер и цвет
+    if (!selectedProduct || !selectedSize || !selectedColor) {
+      e.preventDefault();
+      orderMessage.textContent = 'Сначала выберите корпус, размер и цвет.';
+      orderMessage.classList.add('err');
+      return;
+    }
+
+    // Проверка: поле контакта не должно быть пустым
+    const contact = contactInput.value.trim();
+    if (contact === '') {
+      e.preventDefault();
+      contactInput.classList.add('invalid');
+      contactError.textContent = 'Поле не может быть пустым.';
+      return;
+    }
+    contactInput.classList.remove('invalid');
+    contactError.textContent = '';
+
+    // Заполняем скрытые поля перед отправкой
+    document.getElementById('f-corpus').value = selectedProduct.name;
+    document.getElementById('f-size').value = selectedSize.size;
+    document.getElementById('f-color').value = selectedColor;
+    document.getElementById('f-funcs').value = selectedFunctions.map(f => f.name).join(', ') || 'нет';
+    document.getElementById('f-total').value = totalPrice();
+
+    // Форма отправится сама (target="_blank" откроет ответ в новой вкладке)
+    orderMessage.textContent = 'Отправляем заказ...';
+    orderMessage.classList.add('ok');
+  });
+
+  // Снимаем подсветку ошибки при вводе
+  contactInput.addEventListener('input', () => {
+    contactInput.classList.remove('invalid');
+    contactError.textContent = '';
+  });
+</script>
+
+</body>
+</html>
