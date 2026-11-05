@@ -72,6 +72,13 @@
     font-weight: 600;
   }
 
+  /* Айс-латте курсивом */
+  .hero .ice-latte {
+    font-style: italic;
+    color: var(--green);
+    font-weight: 600;
+  }
+
   /* Цена в герое */
   .hero-price {
     margin-top: 18px;
@@ -488,6 +495,27 @@
   .order-message.ok { color: var(--green); font-weight: 600; }
   .order-message.err { color: #d32f2f; font-weight: 600; }
 
+  /* Приглашение написать нам */
+  .contact-invite {
+    font-size: 14px;
+    color: var(--gray);
+    margin-top: 8px;
+  }
+  .contact-invite a {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dashed var(--green);
+    transition: opacity .15s;
+  }
+  .contact-invite a:hover {
+    opacity: .75;
+  }
+  .contact-invite .sep {
+    color: #ccc;
+    margin: 0 4px;
+  }
+
   @media (max-width: 720px) {
     .cards { grid-template-columns: 1fr; }
     .hero h1 { font-size: 26px; }
@@ -633,6 +661,15 @@
     </form>
 
     <p class="hint">Мы свяжемся с вами по указанному контакту.</p>
+    <p class="contact-invite">
+      Или напиши нам
+      <br>
+      <span class="plain">kvkazak3@gmail.com</span>
+      <span class="sep">·</span>
+      <a href="https://t.me/multivation_co?direct" target="_blank" rel="noopener">Telegram</a>	
+      <span class="sep">·</span>
+      <span class="plain">+7 982 458-10-06</span>
+    </p>
     <div class="order-message" id="orderMessage"></div>
   </section>
 
