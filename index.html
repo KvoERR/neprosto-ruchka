@@ -147,6 +147,11 @@
     height: 100%; font-size: 14px; color: var(--gray);
     padding: 20px; text-align: center;
   }
+  .viewer .loading {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; background: rgba(255,255,255,.7);
+    font-size: 14px; color: var(--gray); z-index: 3;
+  }
 
   .order-card { border: 1px solid var(--border); border-radius: 14px; padding: 20px; background: #fff; }
   .order-card h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
@@ -261,6 +266,7 @@
     <div class="viewer" id="viewer">
       <span class="viewer-label" id="viewerLabel">Выберите параметры</span>
       <div class="viewer-hint">Вращайте мышью · колесо — зум</div>
+      <div class="loading" id="loadingOverlay" style="display:none;">Загрузка модели…</div>
     </div>
   </section>
 
@@ -297,50 +303,59 @@
 
 </main>
 
-<script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
   // ================= СОСТОЯНИЕ =================
-  var selectedProduct = null;
-  var selectedSize = null;
-  var selectedColor = null;
-  var selectedFunctions = [];
+  let selectedProduct = null;
+  let selectedSize = null;
+  let selectedColor = null;
+  let selectedFunctions = [];
 
-  var cards = document.querySelectorAll('.card');
-  var sizeBtns = document.querySelectorAll('.size-btn');
-  var colorBtns = document.querySelectorAll('.color-btn');
-  var functionBtns = document.querySelectorAll('.function-btn');
-  var summary = document.getElementById('summary');
-  var orderBtn = document.getElementById('orderBtn');
-  var orderForm = document.getElementById('orderForm');
-  var contactInput = document.getElementById('contactInput');
-  var contactError = document.getElementById('contactError');
-  var orderMessage = document.getElementById('orderMessage');
-  var viewerLabel = document.getElementById('viewerLabel');
+  const cards = document.querySelectorAll('.card');
+  const sizeBtns = document.querySelectorAll('.size-btn');
+  const colorBtns = document.querySelectorAll('.color-btn');
+  const functionBtns = document.querySelectorAll('.function-btn');
+  const summary = document.getElementById('summary');
+  const orderBtn = document.getElementById('orderBtn');
+  const orderForm = document.getElementById('orderForm');
+  const contactInput = document.getElementById('contactInput');
+  const contactError = document.getElementById('contactError');
+  const orderMessage = document.getElementById('orderMessage');
+  const viewerLabel = document.getElementById('viewerLabel');
+  const loadingOverlay = document.getElementById('loadingOverlay');
 
-  window.refreshPen3D = function () {};
-
+  // ================= UI =================
   function updateFunctions() {
     selectedFunctions = Array.from(functionBtns)
-      .filter(function (b) { return b.classList.contains('selected'); })
-      .map(function (b) { return { name: b.dataset.function, price: Number(b.dataset.price) }; });
+      .filter(b => b.classList.contains('selected'))
+      .map(b => ({ name: b.dataset.function, price: Number(b.dataset.price) }));
   }
 
   function totalPrice() {
     if (!selectedProduct) return 0;
-    var base = Number(selectedProduct.base);
-    var add = selectedFunctions.reduce(function (s, f) { return s + f.price; }, 0);
+    const base = Number(selectedProduct.base);
+    const add = selectedFunctions.reduce((s, f) => s + f.price, 0);
     return base + add;
   }
 
   function updateSummary() {
-    var ready = selectedProduct && selectedSize && selectedColor;
+    const ready = selectedProduct && selectedSize && selectedColor;
     if (ready) {
-      var add = selectedFunctions.reduce(function (s, f) { return s + f.price; }, 0);
-      var html =
+      const add = selectedFunctions.reduce((s, f) => s + f.price, 0);
+      let html =
         '<b>' + selectedProduct.name + '</b> · ' +
         'размер <b>' + selectedSize.size + '</b> · ' +
         'цвет <b>' + selectedColor + '</b><br>';
       if (selectedFunctions.length) {
-        html += 'функции: <b>' + selectedFunctions.map(function (f) { return f.name; }).join(', ') + '</b> (+' + add + ' ₽)';
+        html += 'функции: <b>' + selectedFunctions.map(f => f.name).join(', ') + '</b> (+' + add + ' ₽)';
       } else {
         html += 'функции не выбраны';
       }
@@ -348,7 +363,7 @@
       summary.innerHTML = html;
       orderBtn.classList.remove('disabled');
     } else {
-      var missing = [];
+      const missing = [];
       if (!selectedProduct) missing.push('корпус');
       if (!selectedSize) missing.push('размер');
       if (!selectedColor) missing.push('цвет');
@@ -364,9 +379,9 @@
     }
   }
 
-  cards.forEach(function (card) {
-    card.addEventListener('click', function () {
-      cards.forEach(function (c) { c.classList.remove('selected'); });
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      cards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       selectedProduct = { id: card.dataset.id, name: card.dataset.name, base: card.dataset.base };
       updateSummary();
@@ -374,9 +389,9 @@
     });
   });
 
-  sizeBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      sizeBtns.forEach(function (b) { b.classList.remove('selected'); });
+  sizeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sizeBtns.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedSize = { size: btn.dataset.size };
       updateSummary();
@@ -384,9 +399,9 @@
     });
   });
 
-  colorBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      colorBtns.forEach(function (b) { b.classList.remove('selected'); });
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      colorBtns.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedColor = btn.dataset.color;
       updateSummary();
@@ -394,8 +409,8 @@
     });
   });
 
-  functionBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
+  functionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
       btn.classList.toggle('selected');
       updateFunctions();
       updateSummary();
@@ -406,7 +421,7 @@
   updateFunctions();
   updateSummary();
 
-  orderForm.addEventListener('submit', function (e) {
+  orderForm.addEventListener('submit', e => {
     orderMessage.textContent = '';
     orderMessage.className = 'order-message';
 
@@ -416,7 +431,7 @@
       orderMessage.classList.add('err');
       return;
     }
-    var contact = contactInput.value.trim();
+    const contact = contactInput.value.trim();
     if (!contact) {
       e.preventDefault();
       contactInput.classList.add('invalid');
@@ -429,287 +444,248 @@
     document.getElementById('f-corpus').value = selectedProduct.name;
     document.getElementById('f-size').value = selectedSize.size;
     document.getElementById('f-color').value = selectedColor;
-    document.getElementById('f-funcs').value = selectedFunctions.map(function (f) { return f.name; }).join(', ') || 'нет';
+    document.getElementById('f-funcs').value = selectedFunctions.map(f => f.name).join(', ') || 'нет';
     document.getElementById('f-total').value = totalPrice();
 
     orderMessage.textContent = 'Отправляем заказ...';
     orderMessage.classList.add('ok');
   });
 
-  contactInput.addEventListener('input', function () {
+  contactInput.addEventListener('input', () => {
     contactInput.classList.remove('invalid');
     contactError.textContent = '';
   });
 
-  // ================= THREE.JS =================
-  (function loadThree() {
-    var s = document.createElement('script');
-    s.src = 'https://unpkg.com/three@0.160.0/build/three.min.js';
-    s.onload = function () {
-      try {
-        initThree();
-      } catch (err) {
-        console.error('3D init error:', err);
-        document.getElementById('viewer').innerHTML =
-          '<div class="no-three">Не удалось запустить 3D-просмотр.<br>' + err.message + '</div>';
-      }
-    };
-    s.onerror = function () {
-      document.getElementById('viewer').innerHTML =
-        '<div class="no-three">3D-просмотр недоступен: не удалось загрузить Three.js.<br>Проверьте подключение к интернету.</div>';
-    };
-    document.head.appendChild(s);
-  })();
+  // ================= THREE.JS — загрузка из файла =================
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-  function initThree() {
-    var container = document.getElementById('viewer');
-    if (!container || !window.THREE) return;
+  const container = document.getElementById('viewer');
+  if (!container) throw new Error('viewer not found');
 
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.set(0, 1.4, 6.4);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  camera.position.set(0, 1.4, 6.4);
 
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    container.appendChild(renderer.domElement);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d8, 1.0));
-    var dir = new THREE.DirectionalLight(0xffffff, 1.1);
-    dir.position.set(3, 5, 4);
-    scene.add(dir);
-    var dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
-    dir2.position.set(-3, -2, -4);
-    scene.add(dir2);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d8, 1.0));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+  dir.position.set(3, 5, 4);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  dir2.position.set(-3, -2, -4);
+  scene.add(dir2);
 
-    var penGroup = new THREE.Group();
-    penGroup.rotation.x = -0.12;
-    penGroup.rotation.y = 0.45;
-    scene.add(penGroup);
+  const penGroup = new THREE.Group();
+  penGroup.rotation.x = -0.12;
+  penGroup.rotation.y = 0.45;
+  scene.add(penGroup);
 
-    var bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, metalness: 0.08 });
-    var darkMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.1 });
-    var metalMat = new THREE.MeshStandardMaterial({ color: 0xbfc4c9, roughness: 0.3, metalness: 0.8 });
-    var accentMat = new THREE.MeshStandardMaterial({ color: 0x1a7f37, roughness: 0.5, metalness: 0.1 });
-    var rubberMat = new THREE.MeshStandardMaterial({ color: 0xe6a3b8, roughness: 0.8, metalness: 0 });
-    var woodMat = new THREE.MeshStandardMaterial({ color: 0xd9b88a, roughness: 0.7 });
+  // Кэш загруженных моделей: ключ = "JUST_long" и т.п.
+  const modelCache = new Map();
+  let currentModel = null;
+  let loadId = 0;
 
-    var BASE_LEN = 1.4;
-    var RADIUS = 0.32;
+  const colorMap = {
+    'Белый': 0xffffff,
+    'Чёрный': 0x111111,
+    'Серый': 0x9e9e9e,
+    'Синий': 0x1565c0,
+    'Красный': 0xd32f2f,
+    'Оранжевый': 0xf57c00,
+    'Зелёный': 0x98fb98
+  };
 
-    function cyl(rTop, rBottom, length, material, segments) {
-      var geo = new THREE.CylinderGeometry(rTop, rBottom, length, segments || 24);
-      var mesh = new THREE.Mesh(geo, material);
-      mesh.rotation.z = Math.PI / 2;
-      return mesh;
-    }
+  const loader = new GLTFLoader();
 
-    function makePenTip() {
-      var g = new THREE.Group();
-      var cone = cyl(0.001, 0.24, 0.55, metalMat, 20);
-      cone.position.x = 0.27;
-      g.add(cone);
-      var grip = cyl(RADIUS * 0.92, RADIUS * 0.92, 0.9, rubberMat, 24);
-      grip.position.x = -0.25;
-      g.add(grip);
-      return g;
-    }
+  /**
+   * Путь к модели.
+   * Ожидаемые файлы в папке models/:
+   *   JUST_long.glb, JUST_lite.glb, SNAP_long.glb, SNAP_lite.glb
+   * Можно добавить варианты с функциями, например JUST_long_pen_pencil.glb
+   * или один универсальный файл — тогда измените getModelUrl().
+   */
+  function getModelUrl(corpus, size) {
+    // Основной вариант: отдельный файл на комбинацию корпус+размер
+    return `models/${corpus}_${size}.glb`;
 
-    function makePencilTip() {
-      var g = new THREE.Group();
-      var cone = cyl(0.24, 0.001, 0.5, darkMat, 20);
-      cone.position.x = -0.25;
-      cone.rotation.z = -Math.PI / 2;
-      g.add(cone);
-      var wood = cyl(0.26, 0.16, 0.18, woodMat, 20);
-      g.add(wood);
-      return g;
-    }
-
-    function makeRuler() {
-      var g = new THREE.Group();
-      var plate = new THREE.Mesh(
-        new THREE.BoxGeometry(1.0, 0.05, 0.18),
-        new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 })
-      );
-      plate.position.set(0, RADIUS + 0.03, 0);
-      g.add(plate);
-      for (var i = 0; i < 6; i++) {
-        var tick = new THREE.Mesh(
-          new THREE.BoxGeometry(0.02, 0.02, i % 2 === 0 ? 0.12 : 0.07),
-          new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
-        );
-        tick.position.set(-0.42 + i * 0.17, RADIUS + 0.06, 0);
-        g.add(tick);
-      }
-      return g;
-    }
-
-    function makeSharpener() {
-      var g = new THREE.Group();
-      var ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.27, 0.09, 12, 24),
-        new THREE.MeshStandardMaterial({ color: 0x9e9e9e, roughness: 0.4, metalness: 0.5 })
-      );
-      ring.rotation.y = Math.PI / 2;
-      ring.position.x = 0.15;
-      g.add(ring);
-      var hole = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12, 0.12, 0.2, 20),
-        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 })
-      );
-      hole.rotation.z = Math.PI / 2;
-      hole.position.x = 0.15;
-      g.add(hole);
-      return g;
-    }
-
-    function makeEraser() {
-      var g = new THREE.Group();
-      var er = cyl(0.27, 0.27, 0.3, rubberMat, 20);
-      er.position.x = 0.35;
-      g.add(er);
-      return g;
-    }
-
-    function buildPen(opts) {
-      while (penGroup.children.length) penGroup.remove(penGroup.children[0]);
-
-      var isSnap = opts.corpus === 'SNAP';
-      var isLong = opts.size !== 'lite';
-      var len = isLong ? BASE_LEN * 1.35 : BASE_LEN;
-
-      var body = cyl(RADIUS, RADIUS, len, bodyMat, 32);
-      penGroup.add(body);
-
-      var ringL = cyl(RADIUS * 1.02, RADIUS * 1.02, 0.06, metalMat, 32);
-      ringL.position.x = -len / 2 + 0.03;
-      penGroup.add(ringL);
-      var ringR = cyl(RADIUS * 1.02, RADIUS * 1.02, 0.06, metalMat, 32);
-      ringR.position.x = len / 2 - 0.03;
-      penGroup.add(ringR);
-
-      if (isSnap) {
-        var seamMat = new THREE.MeshStandardMaterial({ color: 0x1a7f37, roughness: 0.6 });
-        for (var i = -1; i <= 1; i++) {
-          var seam = new THREE.Mesh(new THREE.TorusGeometry(RADIUS * 1.01, 0.015, 8, 32), seamMat);
-          seam.rotation.y = Math.PI / 2;
-          seam.position.x = i * len * 0.28;
-          penGroup.add(seam);
-        }
-      }
-
-      var accent = new THREE.Mesh(new THREE.TorusGeometry(RADIUS * 1.03, 0.03, 10, 32), accentMat);
-      accent.rotation.y = Math.PI / 2;
-      penGroup.add(accent);
-
-      var funcs = {};
-      (opts.functions || []).forEach(function (f) { funcs[f] = true; });
-
-      if (funcs['Ручка']) {
-        var m1 = makePenTip();
-        m1.position.x = len / 2;
-        penGroup.add(m1);
-      } else {
-        var cap = cyl(RADIUS, RADIUS, 0.12, metalMat, 24);
-        cap.position.x = len / 2 + 0.06;
-        penGroup.add(cap);
-      }
-
-      if (funcs['Карандаш']) {
-        var m2 = makePencilTip();
-        m2.position.x = -len / 2;
-        penGroup.add(m2);
-      }
-      if (funcs['Линейка']) penGroup.add(makeRuler());
-      if (funcs['Точилка']) penGroup.add(makeSharpener());
-      if (funcs['Ластик']) {
-        var m3 = makeEraser();
-        m3.position.x = -len / 2 + 0.2;
-        penGroup.add(m3);
-      }
-    }
-
-    var colorMap = {
-      'Белый': 0xffffff,
-      'Чёрный': 0x111111,
-      'Серый': 0x9e9e9e,
-      'Синий': 0x1565c0,
-      'Красный': 0xd32f2f,
-      'Оранжевый': 0xf57c00,
-      'Зелёный': 0x98fb98
-    };
-
-    function applyColor(name) {
-      var c = colorMap[name];
-      if (c === undefined) c = 0xffffff;
-      bodyMat.color.setHex(c);
-    }
-
-    window.refreshPen3D = function () {
-      var corpus = selectedProduct ? selectedProduct.name : 'JUST';
-      var size = selectedSize ? selectedSize.size : 'long';
-      var colorName = selectedColor || 'Белый';
-      var funcs = selectedFunctions.map(function (f) { return f.name; });
-
-      applyColor(colorName);
-      buildPen({ corpus: corpus, size: size, functions: funcs });
-    };
-
-    window.refreshPen3D();
-
-    // Вращение мышью
-    var isDragging = false;
-    var prevX = 0, prevY = 0;
-    var targetRotY = penGroup.rotation.y;
-    var targetRotX = penGroup.rotation.x;
-    var canvas = renderer.domElement;
-    canvas.style.cursor = 'grab';
-
-    canvas.addEventListener('pointerdown', function (e) {
-      isDragging = true;
-      prevX = e.clientX;
-      prevY = e.clientY;
-      canvas.style.cursor = 'grabbing';
-    });
-    window.addEventListener('pointermove', function (e) {
-      if (!isDragging) return;
-      var dx = e.clientX - prevX;
-      var dy = e.clientY - prevY;
-      prevX = e.clientX;
-      prevY = e.clientY;
-      targetRotY += dx * 0.01;
-      targetRotX += dy * 0.01;
-      targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
-    });
-    window.addEventListener('pointerup', function () {
-      isDragging = false;
-      canvas.style.cursor = 'grab';
-    });
-
-    canvas.addEventListener('wheel', function (e) {
-      e.preventDefault();
-      camera.position.z += e.deltaY * 0.003;
-      camera.position.z = Math.max(3.5, Math.min(11, camera.position.z));
-    }, { passive: false });
-
-    function resize() {
-      var w = container.clientWidth;
-      var h = container.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    function animate() {
-      requestAnimationFrame(animate);
-      penGroup.rotation.y += (targetRotY - penGroup.rotation.y) * 0.12;
-      penGroup.rotation.x += (targetRotX - penGroup.rotation.x) * 0.12;
-      renderer.render(scene, camera);
-    }
-    animate();
+    // Альтернатива: один файл на всё
+    // return 'models/pen.glb';
   }
+
+  function applyColorToModel(root, colorName) {
+    const hex = colorMap[colorName] ?? 0xffffff;
+    const color = new THREE.Color(hex);
+    root.traverse(obj => {
+      if (obj.isMesh && obj.material) {
+        // Меняем цвет только «корпусных» материалов (не металл, не резина и т.п.)
+        // Если в модели материалы названы, можно фильтровать по name
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach(mat => {
+          if (mat.color && !mat.name?.toLowerCase().includes('metal') &&
+              !mat.name?.toLowerCase().includes('rubber') &&
+              !mat.name?.toLowerCase().includes('wood')) {
+            mat.color.copy(color);
+            mat.needsUpdate = true;
+          }
+        });
+      }
+    });
+  }
+
+  function clearPenGroup() {
+    while (penGroup.children.length) {
+      const child = penGroup.children[0];
+      penGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+        else child.material.dispose();
+      }
+    }
+    currentModel = null;
+  }
+
+  function showLoading(show) {
+    if (loadingOverlay) loadingOverlay.style.display = show ? 'flex' : 'none';
+  }
+
+  function showError(msg) {
+    // Убираем старый canvas-контент ошибок, оставляем только оверлей
+    let err = container.querySelector('.no-three');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'no-three';
+      container.appendChild(err);
+    }
+    err.innerHTML = msg;
+    err.style.display = 'flex';
+  }
+
+  function hideError() {
+    const err = container.querySelector('.no-three');
+    if (err) err.style.display = 'none';
+  }
+
+  async function loadModel(url) {
+    if (modelCache.has(url)) {
+      return modelCache.get(url).clone(true);
+    }
+    return new Promise((resolve, reject) => {
+      loader.load(
+        url,
+        gltf => {
+          const scene = gltf.scene;
+          // Нормализация размера (подгоните под свои модели)
+          scene.scale.set(1, 1, 1);
+          modelCache.set(url, scene);
+          resolve(scene.clone(true));
+        },
+        undefined,
+        err => reject(err)
+      );
+    });
+  }
+
+  window.refreshPen3D = async function () {
+    const corpus = selectedProduct ? selectedProduct.name : 'JUST';
+    const size = selectedSize ? selectedSize.size : 'long';
+    const colorName = selectedColor || 'Белый';
+    // Функции пока не влияют на выбор файла (можно расширить getModelUrl)
+    // const funcs = selectedFunctions.map(f => f.name);
+
+    const url = getModelUrl(corpus, size);
+    const thisLoadId = ++loadId;
+
+    showLoading(true);
+    hideError();
+
+    try {
+      const model = await loadModel(url);
+      if (thisLoadId !== loadId) return; // устаревший запрос
+
+      clearPenGroup();
+      applyColorToModel(model, colorName);
+      penGroup.add(model);
+      currentModel = model;
+
+      // Центрирование (опционально)
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+    } catch (err) {
+      if (thisLoadId !== loadId) return;
+      console.error('Ошибка загрузки модели:', err);
+      clearPenGroup();
+      showError(
+        'Не удалось загрузить 3D-модель.<br>' +
+        'Ожидаемый файл: <code>' + url + '</code><br><br>' +
+        'Положите .glb файлы в папку <code>models/</code> рядом с этой страницей.<br>' +
+        'Имена: JUST_long.glb, JUST_lite.glb, SNAP_long.glb, SNAP_lite.glb'
+      );
+    } finally {
+      if (thisLoadId === loadId) showLoading(false);
+    }
+  };
+
+  // Вращение мышью
+  let isDragging = false;
+  let prevX = 0, prevY = 0;
+  let targetRotY = penGroup.rotation.y;
+  let targetRotX = penGroup.rotation.x;
+  const canvas = renderer.domElement;
+  canvas.style.cursor = 'grab';
+
+  canvas.addEventListener('pointerdown', e => {
+    isDragging = true;
+    prevX = e.clientX;
+    prevY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+  });
+  window.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - prevX;
+    const dy = e.clientY - prevY;
+    prevX = e.clientX;
+    prevY = e.clientY;
+    targetRotY += dx * 0.01;
+    targetRotX += dy * 0.01;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+  });
+  window.addEventListener('pointerup', () => {
+    isDragging = false;
+    canvas.style.cursor = 'grab';
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    camera.position.z += e.deltaY * 0.003;
+    camera.position.z = Math.max(3.5, Math.min(11, camera.position.z));
+  }, { passive: false });
+
+  function resize() {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    penGroup.rotation.y += (targetRotY - penGroup.rotation.y) * 0.12;
+    penGroup.rotation.x += (targetRotX - penGroup.rotation.x) * 0.12;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Первая загрузка (даже без выбора — покажет ошибку, если файлов нет)
+  window.refreshPen3D();
 </script>
 
 </body>
