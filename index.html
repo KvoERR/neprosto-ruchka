@@ -43,7 +43,6 @@
     letter-spacing: .06em; color: var(--gray); margin-bottom: 10px;
   }
   .panel-section .cards,
-  .panel-section .sizes,
   .panel-section .functions,
   .panel-section .colors { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -67,24 +66,6 @@
   .card h3 { font-size: 15px; }
   .card .desc { font-size: 12px; color: var(--gray); }
   .card .price { font-size: 13px; font-weight: 600; margin-top: 4px; }
-
-  .size-btn {
-    border: 1px solid #ddd; background: #fff; border-radius: 8px;
-    padding: 8px 12px; font-size: 13px; font-family: inherit;
-    cursor: pointer; color: var(--black);
-    transition: border-color .15s, color .15s, background .15s;
-    flex: 1 1 0; display: inline-flex; align-items: center;
-    justify-content: center; min-width: 110px;
-  }
-  .size-btn:hover { border-color: var(--green); color: var(--green); }
-  .size-btn.selected {
-    border-color: var(--green); color: var(--green);
-    font-weight: 600; background: var(--green-light);
-  }
-  .size-btn .label { display: inline-block; }
-  .size-btn .stem { display: none; font-weight: 400; font-size: 12px; }
-  .size-btn:hover .label { display: none; }
-  .size-btn:hover .stem { display: inline; }
 
   .function-btn {
     border: 1px solid #ddd; background: #fff; border-radius: 8px;
@@ -118,7 +99,6 @@
     background: var(--c); border-color: var(--c);
     color: var(--text, #fff); font-weight: 600;
   }
-  .color-btn[data-color="Белый"],
   .color-btn[data-color="Серый"],
   .color-btn[data-color="Зелёный"] { --text: #111; }
 
@@ -217,31 +197,21 @@
         <div class="card" data-id="just" data-name="JUST" data-base="250">
           <span class="badge">Классика</span>
           <h3>JUST</h3>
-          <p class="desc">Ручка + карандаш, остальное на корпусе</p>
+          <p class="desc">Ручка и карандаш на разных концах корпуса</p>
           <div class="price">250 ₽</div>
         </div>
         <div class="card" data-id="snap" data-name="SNAP" data-base="250">
-          <span class="badge">Хай-тек</span>
+          <span class="badge">Конструктор</span>
           <h3>SNAP</h3>
-          <p class="desc">Съёмные модули, как конструктор</p>
+          <p class="desc">Крпеление для карандаша крепится к ручке</p>
           <div class="price">250 ₽</div>
         </div>
-      </div>
-    </section>
-
-    <section class="panel-section">
-      <h2>Размер стержня</h2>
-      <div class="sizes" id="sizes">
-        <button class="size-btn" data-size="long"><span class="label">Long</span><span class="stem">130 мм</span></button>
-        <button class="size-btn" data-size="lite"><span class="label">Lite</span><span class="stem">90 мм</span></button>
       </div>
     </section>
 
     <section class="panel-section">
       <h2>Функции</h2>
       <div class="functions" id="functions">
-        <button class="function-btn" data-function="Ручка" data-price="10"><span class="name">Ручка</span><span class="plus">+10 ₽</span></button>
-        <button class="function-btn" data-function="Карандаш" data-price="10"><span class="name">Карандаш</span><span class="plus">+10 ₽</span></button>
         <button class="function-btn" data-function="Линейка" data-price="10"><span class="name">Линейка</span><span class="plus">+10 ₽</span></button>
         <button class="function-btn" data-function="Точилка" data-price="10"><span class="name">Точилка</span><span class="plus">+10 ₽</span></button>
         <button class="function-btn" data-function="Ластик" data-price="10"><span class="name">Ластик</span><span class="plus">+10 ₽</span></button>
@@ -251,9 +221,8 @@
     <section class="panel-section">
       <h2>Цвет</h2>
       <div class="colors" id="colors">
-        <button class="color-btn" data-color="Белый" style="--c:#ffffff">Белый</button>
+        <button class="color-btn selected" data-color="Серый" style="--c:#9e9e9e">Серый</button>
         <button class="color-btn" data-color="Чёрный" style="--c:#111111">Чёрный</button>
-        <button class="color-btn" data-color="Серый" style="--c:#9e9e9e">Серый</button>
         <button class="color-btn" data-color="Синий" style="--c:#1565c0">Синий</button>
         <button class="color-btn" data-color="Красный" style="--c:#d32f2f">Красный</button>
         <button class="color-btn" data-color="Оранжевый" style="--c:#f57c00">Оранжевый</button>
@@ -273,7 +242,7 @@
   <aside>
     <div class="order-card">
       <h2>Ваш заказ</h2>
-      <div class="summary" id="summary">Выберите корпус, размер и цвет</div>
+      <div class="summary" id="summary">Выберите корпус и цвет</div>
 
       <form id="orderForm" action="https://script.google.com/macros/s/AKfycbzwGoJXqdVGUdPoS42uLQG0YWvof-Ddc03SmIE66ZfKmIyFjUgqUJCpOXABnB9PdEuykQ/exec" method="POST" target="_blank">
         <div class="contact-field">
@@ -283,7 +252,6 @@
         </div>
 
         <input type="hidden" name="Корпус" id="f-corpus">
-        <input type="hidden" name="Размер" id="f-size">
         <input type="hidden" name="Цвет" id="f-color">
         <input type="hidden" name="Функции" id="f-funcs">
         <input type="hidden" name="Итого" id="f-total">
@@ -315,12 +283,10 @@
 <script type="module">
   // ================= СОСТОЯНИЕ =================
   let selectedProduct = null;
-  let selectedSize = null;
   let selectedColor = null;
   let selectedFunctions = [];
 
   const cards = document.querySelectorAll('.card');
-  const sizeBtns = document.querySelectorAll('.size-btn');
   const colorBtns = document.querySelectorAll('.color-btn');
   const functionBtns = document.querySelectorAll('.function-btn');
   const summary = document.getElementById('summary');
@@ -347,12 +313,11 @@
   }
 
   function updateSummary() {
-    const ready = selectedProduct && selectedSize && selectedColor;
+    const ready = selectedProduct && selectedColor;
     if (ready) {
       const add = selectedFunctions.reduce((s, f) => s + f.price, 0);
       let html =
         '<b>' + selectedProduct.name + '</b> · ' +
-        'размер <b>' + selectedSize.size + '</b> · ' +
         'цвет <b>' + selectedColor + '</b><br>';
       if (selectedFunctions.length) {
         html += 'функции: <b>' + selectedFunctions.map(f => f.name).join(', ') + '</b> (+' + add + ' ₽)';
@@ -365,7 +330,6 @@
     } else {
       const missing = [];
       if (!selectedProduct) missing.push('корпус');
-      if (!selectedSize) missing.push('размер');
       if (!selectedColor) missing.push('цвет');
       summary.textContent = 'Осталось выбрать: ' + missing.join(', ');
       orderBtn.classList.add('disabled');
@@ -374,7 +338,6 @@
     if (viewerLabel) {
       viewerLabel.textContent =
         (selectedProduct ? selectedProduct.name : '—') + ' · ' +
-        (selectedSize ? (selectedSize.size === 'long' ? 'Long' : 'Lite') : '—') + ' · ' +
         (selectedColor || '—');
     }
   }
@@ -384,16 +347,6 @@
       cards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       selectedProduct = { id: card.dataset.id, name: card.dataset.name, base: card.dataset.base };
-      updateSummary();
-      window.refreshPen3D();
-    });
-  });
-
-  sizeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      sizeBtns.forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedSize = { size: btn.dataset.size };
       updateSummary();
       window.refreshPen3D();
     });
@@ -425,9 +378,9 @@
     orderMessage.textContent = '';
     orderMessage.className = 'order-message';
 
-    if (!selectedProduct || !selectedSize || !selectedColor) {
+    if (!selectedProduct || !selectedColor) {
       e.preventDefault();
-      orderMessage.textContent = 'Сначала выберите корпус, размер и цвет.';
+      orderMessage.textContent = 'Сначала выберите корпус и цвет.';
       orderMessage.classList.add('err');
       return;
     }
@@ -442,7 +395,6 @@
     contactError.textContent = '';
 
     document.getElementById('f-corpus').value = selectedProduct.name;
-    document.getElementById('f-size').value = selectedSize.size;
     document.getElementById('f-color').value = selectedColor;
     document.getElementById('f-funcs').value = selectedFunctions.map(f => f.name).join(', ') || 'нет';
     document.getElementById('f-total').value = totalPrice();
@@ -456,41 +408,49 @@
     contactError.textContent = '';
   });
 
-  // ================= THREE.JS — загрузка из файла =================
+  // ================= THREE.JS =================
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
   const container = document.getElementById('viewer');
   if (!container) throw new Error('viewer not found');
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
   camera.position.set(0, 1.4, 6.4);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.9;
   container.appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d8, 1.0));
-  const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+  // Environment map — критично для чистого белого на MeshStandardMaterial
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  // Свет — приглушён для более тёмного, пластичного вида
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.0);
   dir.position.set(3, 5, 4);
   scene.add(dir);
-  const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.5);
   dir2.position.set(-3, -2, -4);
   scene.add(dir2);
 
   const penGroup = new THREE.Group();
-  penGroup.rotation.x = -0.12;
-  penGroup.rotation.y = 0.45;
+  penGroup.rotation.x = -0.67;
+  penGroup.rotation.y = 3.3;
   scene.add(penGroup);
 
-  // Кэш загруженных моделей: ключ = "JUST_long" и т.п.
   const modelCache = new Map();
   let currentModel = null;
   let loadId = 0;
+  let baseCameraDistance = 5;
 
   const colorMap = {
-    'Белый': 0xffffff,
     'Чёрный': 0x111111,
     'Серый': 0x9e9e9e,
     'Синий': 0x1565c0,
@@ -499,36 +459,54 @@
     'Зелёный': 0x98fb98
   };
 
+  /**
+   * Карта: точное имя группы в модели → имя функции в UI.
+   * Имена групп — из вашей модели: eraser, sharp, ruler.
+   * Добавьте остальные, если нужно скрывать ручку/карандаш.
+   */
+  const GROUP_TO_FUNCTION = {
+    'eraser': 'Ластик',
+    'sharp':  'Точилка',
+    'ruler':  'Линейка',
+    // 'pen':    'Ручка',
+    // 'pencil': 'Карандаш',
+  };
+
   const loader = new GLTFLoader();
 
-  /**
-   * Путь к модели.
-   * Ожидаемые файлы в папке models/:
-   *   JUST_long.glb, JUST_lite.glb, SNAP_long.glb, SNAP_lite.glb
-   * Можно добавить варианты с функциями, например JUST_long_pen_pencil.glb
-   * или один универсальный файл — тогда измените getModelUrl().
-   */
-  function getModelUrl(corpus, size) {
-    // Основной вариант: отдельный файл на комбинацию корпус+размер
-    return `models/${corpus}_${size}.glb`;
-
-    // Альтернатива: один файл на всё
-    // return 'models/pen.glb';
+  function getModelUrl(corpus) {
+    return `models/${corpus}.gltf`;
   }
 
   function applyColorToModel(root, colorName) {
     const hex = colorMap[colorName] ?? 0xffffff;
     const color = new THREE.Color(hex);
+    const selectedNames = new Set(selectedFunctions.map(f => f.name));
+
     root.traverse(obj => {
+      // 1. Сброс видимости — обязательно, чтобы при повторном выборе функция вернулась
+      obj.visible = true;
+
+      // 2. Скрытие по точному имени группы/объекта (работает и для Group, и для Mesh)
+      const fn = GROUP_TO_FUNCTION[obj.name];
+      if (fn && !selectedNames.has(fn)) {
+        obj.visible = false;
+      }
+
+      // 3. Цвет — только для мешей
       if (obj.isMesh && obj.material) {
-        // Меняем цвет только «корпусных» материалов (не металл, не резина и т.п.)
-        // Если в модели материалы названы, можно фильтровать по name
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         mats.forEach(mat => {
-          if (mat.color && !mat.name?.toLowerCase().includes('metal') &&
+          if (mat.color &&
+              !mat.name?.toLowerCase().includes('metal') &&
               !mat.name?.toLowerCase().includes('rubber') &&
               !mat.name?.toLowerCase().includes('wood')) {
-            mat.color.copy(color);
+            mat.color.setHex(hex, THREE.SRGBColorSpace);
+
+            // Пластик: матовый, без бликов
+            if ('metalness' in mat) mat.metalness = 0.0;
+            if ('roughness' in mat) mat.roughness = 0.85;
+
             mat.needsUpdate = true;
           }
         });
@@ -554,7 +532,6 @@
   }
 
   function showError(msg) {
-    // Убираем старый canvas-контент ошибок, оставляем только оверлей
     let err = container.querySelector('.no-three');
     if (!err) {
       err = document.createElement('div');
@@ -579,7 +556,6 @@
         url,
         gltf => {
           const scene = gltf.scene;
-          // Нормализация размера (подгоните под свои модели)
           scene.scale.set(1, 1, 1);
           modelCache.set(url, scene);
           resolve(scene.clone(true));
@@ -590,14 +566,47 @@
     });
   }
 
+  /**
+   * Авто-масштабирование модели под целевой размер сцены
+   * и подгонка камеры, чтобы модель гарантированно влезала в кадр.
+   */
+  function fitModelAndCamera(model) {
+    let box = new THREE.Box3().setFromObject(model);
+    let size = box.getSize(new THREE.Vector3());
+    let maxDim = Math.max(size.x, size.y, size.z);
+
+    if (!isFinite(maxDim) || maxDim <= 0) {
+      console.warn('Не удалось определить размер модели — оставляем как есть');
+      return;
+    }
+
+    const TARGET_SIZE = 4;
+    const scale = TARGET_SIZE / maxDim;
+    model.scale.setScalar(scale);
+
+    box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center);
+
+    const box2 = new THREE.Box3().setFromObject(model);
+    const size2 = box2.getSize(new THREE.Vector3());
+    const maxSize = Math.max(size2.x, size2.y, size2.z);
+
+    const fov = camera.fov * Math.PI / 180;
+    const fitHeightDistance = maxSize / (2 * Math.tan(fov / 2));
+    const fitWidthDistance = fitHeightDistance / camera.aspect;
+    const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.2;
+
+    baseCameraDistance = distance;
+    camera.position.set(0, 0, distance);
+    camera.lookAt(0, 0, 0);
+  }
+
   window.refreshPen3D = async function () {
     const corpus = selectedProduct ? selectedProduct.name : 'JUST';
-    const size = selectedSize ? selectedSize.size : 'long';
-    const colorName = selectedColor || 'Белый';
-    // Функции пока не влияют на выбор файла (можно расширить getModelUrl)
-    // const funcs = selectedFunctions.map(f => f.name);
+    const colorName = selectedColor || 'Серый';
 
-    const url = getModelUrl(corpus, size);
+    const url = getModelUrl(corpus);
     const thisLoadId = ++loadId;
 
     showLoading(true);
@@ -605,17 +614,13 @@
 
     try {
       const model = await loadModel(url);
-      if (thisLoadId !== loadId) return; // устаревший запрос
+      if (thisLoadId !== loadId) return;
 
       clearPenGroup();
       applyColorToModel(model, colorName);
+      fitModelAndCamera(model);
       penGroup.add(model);
       currentModel = model;
-
-      // Центрирование (опционально)
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      model.position.sub(center);
     } catch (err) {
       if (thisLoadId !== loadId) return;
       console.error('Ошибка загрузки модели:', err);
@@ -624,14 +629,14 @@
         'Не удалось загрузить 3D-модель.<br>' +
         'Ожидаемый файл: <code>' + url + '</code><br><br>' +
         'Положите .glb файлы в папку <code>models/</code> рядом с этой страницей.<br>' +
-        'Имена: JUST_long.glb, JUST_lite.glb, SNAP_long.glb, SNAP_lite.glb'
+        'Имена: JUST.glb, SNAP.glb'
       );
     } finally {
       if (thisLoadId === loadId) showLoading(false);
     }
   };
 
-  // Вращение мышью
+  // ================= ВРАЩЕНИЕ МЫШЬЮ =================
   let isDragging = false;
   let prevX = 0, prevY = 0;
   let targetRotY = penGroup.rotation.y;
@@ -662,8 +667,10 @@
 
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
+    const minDist = baseCameraDistance * 0.5;
+    const maxDist = baseCameraDistance * 2;
     camera.position.z += e.deltaY * 0.003;
-    camera.position.z = Math.max(3.5, Math.min(11, camera.position.z));
+    camera.position.z = Math.max(minDist, Math.min(maxDist, camera.position.z));
   }, { passive: false });
 
   function resize() {
@@ -684,7 +691,6 @@
   }
   animate();
 
-  // Первая загрузка (даже без выбора — покажет ошибку, если файлов нет)
   window.refreshPen3D();
 </script>
 
