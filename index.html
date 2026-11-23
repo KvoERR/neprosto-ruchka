@@ -44,7 +44,8 @@
   }
   .panel-section .cards,
   .panel-section .functions,
-  .panel-section .colors { display: flex; flex-wrap: wrap; gap: 8px; }
+  .panel-section .colors,
+  .panel-section .texture { display: flex; flex-wrap: wrap; gap: 8px; }
 
   .card {
     border: 1px solid var(--border); border-radius: 10px;
@@ -101,6 +102,14 @@
   }
   .color-btn[data-color="Серый"],
   .color-btn[data-color="Зелёный"] { --text: #111; }
+
+  .texture-input {
+    width: 100%; border: 1px solid #ddd; border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; font-family: inherit;
+    cursor: pointer; background: #f9f9f9;
+    transition: border-color .15s;
+  }
+  .texture-input:hover { border-color: var(--green); }
 
   .viewer-wrap { position: sticky; top: 16px; }
   .viewer {
@@ -203,7 +212,7 @@
         <div class="card" data-id="snap" data-name="SNAP" data-base="250">
           <span class="badge">Конструктор</span>
           <h3>SNAP</h3>
-          <p class="desc">Крпеление для карандаша крепится к ручке</p>
+          <p class="desc">Крепление для карандаша крепится к ручке</p>
           <div class="price">250 ₽</div>
         </div>
       </div>
@@ -227,6 +236,14 @@
         <button class="color-btn" data-color="Красный" style="--c:#d32f2f">Красный</button>
         <button class="color-btn" data-color="Оранжевый" style="--c:#f57c00">Оранжевый</button>
         <button class="color-btn" data-color="Зелёный" style="--c:#98fb98">Зелёный</button>
+      </div>
+    </section>
+
+    <section class="panel-section">
+      <h2>Рисунок на корпусе</h2>
+      <div style="padding: 8px;">
+        <input type="file" id="textureInput" accept="image/*" class="texture-input">
+        <div id="textureName" style="font-size: 11px; color: var(--gray); margin-top: 4px;"></div>
       </div>
     </section>
   </aside>
@@ -285,10 +302,14 @@
   let selectedProduct = null;
   let selectedColor = null;
   let selectedFunctions = [];
+  let currentTexture = null;
+  let currentTextureUrl = null;
 
   const cards = document.querySelectorAll('.card');
   const colorBtns = document.querySelectorAll('.color-btn');
   const functionBtns = document.querySelectorAll('.function-btn');
+  const textureInput = document.getElementById('textureInput');
+  const textureName = document.getElementById('textureName');
   const summary = document.getElementById('summary');
   const orderBtn = document.getElementById('orderBtn');
   const orderForm = document.getElementById('orderForm');
@@ -297,6 +318,12 @@
   const orderMessage = document.getElementById('orderMessage');
   const viewerLabel = document.getElementById('viewerLabel');
   const loadingOverlay = document.getElementById('loadingOverlay');
+
+  // Инициализация цвета из кнопки, которая уже имеет class="selected"
+  const initialColorBtn = document.querySelector('.color-btn.selected');
+  if (initialColorBtn) {
+    selectedColor = initialColorBtn.dataset.color;
+  }
 
   // ================= UI =================
   function updateFunctions() {
@@ -358,7 +385,9 @@
       btn.classList.add('selected');
       selectedColor = btn.dataset.color;
       updateSummary();
-      window.refreshPen3D();
+      if (currentModel) {
+        applyColorToModel(currentModel, selectedColor);
+      }
     });
   });
 
@@ -367,8 +396,62 @@
       btn.classList.toggle('selected');
       updateFunctions();
       updateSummary();
-      window.refreshPen3D();
+      if (currentModel) {
+        applyColorToModel(currentModel, selectedColor);
+      }
     });
+  });
+
+  textureInput.addEventListener('change', (e) => {
+    if (currentTextureUrl) {
+      URL.revokeObjectURL(currentTextureUrl);
+      currentTextureUrl = null;
+    }
+
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        e.target.value = '';
+        textureName.textContent = '';
+        currentTexture = null;
+        alert('Пожалуйста, выберите изображение.');
+        if (currentModel) applyColorToModel(currentModel, selectedColor);
+        return;
+      }
+
+      textureName.textContent = file.name;
+      currentTextureUrl = URL.createObjectURL(file);
+
+      texLoader.load(
+        currentTextureUrl,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.flipY = false;
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+          tex.generateMipmaps = true;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          tex.needsUpdate = true;
+
+          currentTexture = tex;
+          if (currentModel) {
+            applyColorToModel(currentModel, selectedColor);
+          }
+        },
+        undefined,
+        () => {
+          console.error('Ошибка загрузки текстуры');
+          currentTexture = null;
+          textureName.textContent = '';
+          if (currentModel) applyColorToModel(currentModel, selectedColor);
+        }
+      );
+    } else {
+      textureName.textContent = '';
+      currentTexture = null;
+      if (currentModel) applyColorToModel(currentModel, selectedColor);
+    }
   });
 
   updateFunctions();
@@ -427,11 +510,9 @@
   renderer.toneMappingExposure = 0.9;
   container.appendChild(renderer.domElement);
 
-  // Environment map — критично для чистого белого на MeshStandardMaterial
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  // Свет — приглушён для более тёмного, пластичного вида
   scene.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0));
   const dir = new THREE.DirectionalLight(0xffffff, 1.0);
   dir.position.set(3, 5, 4);
@@ -459,58 +540,95 @@
     'Зелёный': 0x98fb98
   };
 
-  /**
-   * Карта: точное имя группы в модели → имя функции в UI.
-   * Имена групп — из вашей модели: eraser, sharp, ruler.
-   * Добавьте остальные, если нужно скрывать ручку/карандаш.
-   */
   const GROUP_TO_FUNCTION = {
     'eraser': 'Ластик',
     'sharp':  'Точилка',
     'ruler':  'Линейка',
-    // 'pen':    'Ручка',
-    // 'pencil': 'Карандаш',
   };
 
   const loader = new GLTFLoader();
+  const texLoader = new THREE.TextureLoader();
 
   function getModelUrl(corpus) {
     return `models/${corpus}.gltf`;
   }
 
+  // Клонируем материалы, чтобы каждый инстанс имел свои
+  function cloneWithMaterials(source) {
+    const clone = source.clone(true);
+    clone.traverse(obj => {
+      if (obj.isMesh && obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material = obj.material.map(m => m.clone());
+        } else {
+          obj.material = obj.material.clone();
+        }
+      }
+    });
+    return clone;
+  }
+
   function applyColorToModel(root, colorName) {
-    const hex = colorMap[colorName] ?? 0xffffff;
-    const color = new THREE.Color(hex);
+    const hex = colorMap[colorName] ?? 0x9e9e9e;
     const selectedNames = new Set(selectedFunctions.map(f => f.name));
 
     root.traverse(obj => {
-      // 1. Сброс видимости — обязательно, чтобы при повторном выборе функция вернулась
       obj.visible = true;
 
-      // 2. Скрытие по точному имени группы/объекта (работает и для Group, и для Mesh)
       const fn = GROUP_TO_FUNCTION[obj.name];
       if (fn && !selectedNames.has(fn)) {
         obj.visible = false;
+        return;
       }
 
-      // 3. Цвет — только для мешей
-      if (obj.isMesh && obj.material) {
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        mats.forEach(mat => {
-          if (mat.color &&
-              !mat.name?.toLowerCase().includes('metal') &&
-              !mat.name?.toLowerCase().includes('rubber') &&
-              !mat.name?.toLowerCase().includes('wood')) {
-            mat.color.setHex(hex, THREE.SRGBColorSpace);
+      if (!obj.isMesh || !obj.material) return;
 
-            // Пластик: матовый, без бликов
-            if ('metalness' in mat) mat.metalness = 0.0;
-            if ('roughness' in mat) mat.roughness = 0.85;
+      const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+      const nameLower = (obj.name || '').toLowerCase();
 
-            mat.needsUpdate = true;
+      // Гибкое определение корпуса
+      const isCorpus =
+        nameLower.startsWith('corpus');
+
+      mats.forEach(mat => {
+        if (mat.color) mat.color.setHex(hex);
+        if (mat.emissive) mat.emissive.setHex(0x000000);
+
+        if (isCorpus) {
+          if (currentTexture) {
+            mat.map = currentTexture;
+            mat.map.colorSpace = THREE.SRGBColorSpace;
+            
+            // Важно для цилиндрических объектов (ручка)
+            mat.map.wrapS = THREE.RepeatWrapping;
+            mat.map.wrapT = THREE.RepeatWrapping;
+            
+            // Попробуйте эти значения (самое частое решение)
+            mat.map.repeat.set(1, 1);        // можно менять: 2, 0.5, 3 и т.д.
+            // mat.map.repeat.set(2, 1);     // чаще всего помогает на ручках
+            // mat.map.repeat.set(1, 0.5);
+            
+            mat.map.offset.set(0, 0);
+            mat.map.rotation = 0;
+            mat.map.center.set(0.5, 0.5);
+            
+            mat.map.needsUpdate = true;
+            
+            // Цвет обязательно белый
+            mat.color.setHex(0xffffff);
+            
+            // Иногда помогает
+            if (mat.roughness !== undefined) mat.roughness = 0.6;
+            if (mat.metalness !== undefined) mat.metalness = 0.1;
+          } else {
+            mat.map = null;
           }
-        });
-      }
+        } else {
+          mat.map = null;
+        }
+
+        mat.needsUpdate = true;
+      });
     });
   }
 
@@ -518,11 +636,14 @@
     while (penGroup.children.length) {
       const child = penGroup.children[0];
       penGroup.remove(child);
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) {
-        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-        else child.material.dispose();
-      }
+
+      child.traverse(obj => {
+        if (obj.isMesh && obj.material) {
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(m => m.dispose());
+        }
+        // Геометрии не диспоузим — они общие с кэшем
+      });
     }
     currentModel = null;
   }
@@ -549,16 +670,24 @@
 
   async function loadModel(url) {
     if (modelCache.has(url)) {
-      return modelCache.get(url).clone(true);
+      return cloneWithMaterials(modelCache.get(url));
     }
+
     return new Promise((resolve, reject) => {
       loader.load(
         url,
         gltf => {
           const scene = gltf.scene;
           scene.scale.set(1, 1, 1);
+
+          // Логируем имена всех мешей — откройте консоль (F12)
+          console.log('=== Меши модели', url, '===');
+          scene.traverse(o => {
+            if (o.isMesh) console.log('Mesh name:', o.name);
+          });
+
           modelCache.set(url, scene);
-          resolve(scene.clone(true));
+          resolve(cloneWithMaterials(scene));
         },
         undefined,
         err => reject(err)
@@ -566,17 +695,13 @@
     });
   }
 
-  /**
-   * Авто-масштабирование модели под целевой размер сцены
-   * и подгонка камеры, чтобы модель гарантированно влезала в кадр.
-   */
   function fitModelAndCamera(model) {
     let box = new THREE.Box3().setFromObject(model);
     let size = box.getSize(new THREE.Vector3());
     let maxDim = Math.max(size.x, size.y, size.z);
 
     if (!isFinite(maxDim) || maxDim <= 0) {
-      console.warn('Не удалось определить размер модели — оставляем как есть');
+      console.warn('Не удалось определить размер модели');
       return;
     }
 
@@ -625,18 +750,13 @@
       if (thisLoadId !== loadId) return;
       console.error('Ошибка загрузки модели:', err);
       clearPenGroup();
-      showError(
-        'Не удалось загрузить 3D-модель.<br>' +
-        'Ожидаемый файл: <code>' + url + '</code><br><br>' +
-        'Положите .glb файлы в папку <code>models/</code> рядом с этой страницей.<br>' +
-        'Имена: JUST.glb, SNAP.glb'
-      );
+      showError('Не удалось загрузить 3D-модель.<br>Проверьте наличие файлов models/JUST.gltf и models/SNAP.gltf');
     } finally {
       if (thisLoadId === loadId) showLoading(false);
     }
   };
 
-  // ================= ВРАЩЕНИЕ МЫШЬЮ =================
+  // ================= ВРАЩЕНИЕ И ЗУМ =================
   let isDragging = false;
   let prevX = 0, prevY = 0;
   let targetRotY = penGroup.rotation.y;
@@ -650,6 +770,7 @@
     prevY = e.clientY;
     canvas.style.cursor = 'grabbing';
   });
+
   window.addEventListener('pointermove', e => {
     if (!isDragging) return;
     const dx = e.clientX - prevX;
@@ -660,6 +781,7 @@
     targetRotX += dy * 0.01;
     targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
   });
+
   window.addEventListener('pointerup', () => {
     isDragging = false;
     canvas.style.cursor = 'grab';
@@ -691,8 +813,8 @@
   }
   animate();
 
+  // Первый запуск
   window.refreshPen3D();
 </script>
-
 </body>
 </html>
