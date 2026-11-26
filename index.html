@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Непросто ручка — 5 в 1</title>
-<link rel="icon" type="image/png" href="favicon.png">
 <style>
   :root {
     --green: #1a7f37;
     --green-light: #eaf5ec;
     --black: #111;
     --gray: #666;
+    --border: #e5e5e5;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -19,509 +19,182 @@
     color: var(--black);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    text-align: center;
   }
-  .wrap {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-
-  /* Шапка */
-  header {
-    border-bottom: 1px solid #e5e5e5;
-    padding: 24px 0;
-  }
+  header { border-bottom: 1px solid var(--border); padding: 14px 0; }
   header .wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    max-width: 1400px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
   }
-  .logo {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
+  .logo { font-size: 20px; font-weight: 700; }
   .logo span { color: var(--green); }
-  .tagline {
-    font-size: 14px;
-    color: var(--gray);
-  }
+  .tagline { font-size: 13px; color: var(--gray); }
 
-  /* Герой */
-  .hero {
-    padding: 56px 0 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .hero h1 {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    margin-bottom: 12px;
-  }
-  .hero p {
-    font-size: 17px;
-    color: var(--gray);
-    max-width: 560px;
-  }
-  .hero .accent {
-    color: var(--green);
-    font-weight: 600;
-  }
-
-  /* Айс-латте курсивом */
-  .hero .ice-latte {
-    font-style: italic;
-    color: var(--green);
-    font-weight: 600;
-  }
-
-  /* Цена в герое */
-  .hero-price {
-    margin-top: 18px;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--black);
-  }
-  .hero-price .accent {
-    font-size: 26px;
-    font-weight: 700;
-  }
-
-  /* Заголовок «Корпус» */
-  .section-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 8px 0 0;
-    text-align: center;
-  }
-
-  /* Карточки — по центру */
-  .cards {
+  .layout {
+    max-width: 1400px; margin: 0 auto; padding: 20px 24px 40px;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 280px));
-    gap: 16px;
-    padding: 16px 0 8px;
-    justify-content: center;
+    grid-template-columns: 300px minmax(0, 1fr) 320px;
+    gap: 20px; align-items: start;
   }
+
+  .panel-left { display: flex; flex-direction: column; gap: 18px; }
+  .panel-section h2 {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--gray); margin-bottom: 10px;
+  }
+  .panel-section .cards,
+  .panel-section .functions,
+  .panel-section .colors,
+  .panel-section .texture { display: flex; flex-wrap: wrap; gap: 8px; }
+
   .card {
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: border-color .15s, box-shadow .15s, transform .1s;
-    background: #fff;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    background: #fff; display: flex; flex-direction: column;
+    gap: 2px; flex: 1 1 100%;
   }
-  .card:hover {
-    border-color: #bbb;
-    transform: translateY(-2px);
-  }
+  .card:hover { border-color: #bbb; }
   .card.selected {
-    border-color: var(--green);
-    box-shadow: 0 0 0 1px var(--green);
-  }
-
-  /* Фото-галерея при наведении */
-  .card .photo {
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s;
-    overflow: hidden;
-    z-index: 5;
-  }
-  .card:hover .photo {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .card .photo .gallery {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card .photo .gallery img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 12px;
-    display: none;
-  }
-  .card .photo .gallery img.active { display: block; }
-
-  /* Точки — создаются скриптом */
-  .card .photo .dots {
-    position: absolute;
-    bottom: 8px;
-    left: 0;
-    right: 0;
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-  }
-  .card .photo .dots button {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: none;
-    background: #ccc;
-    cursor: pointer;
-    padding: 0;
-    transition: background .15s;
-  }
-  .card .photo .dots button.active { background: var(--green); }
-
-  /* Стрелки */
-  .card .photo .nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid #ddd;
-    background: rgba(255,255,255,.9);
-    color: var(--black);
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    transition: border-color .15s, color .15s;
-  }
-  .card .photo .nav:hover { border-color: var(--green); color: var(--green); }
-  .card .photo .nav.prev { left: 8px; }
-  .card .photo .nav.next { right: 8px; }
-
-  .card .badge {
-    display: inline-block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--green);
-    border: 1px solid var(--green);
-    border-radius: 999px;
-    padding: 2px 8px;
-    margin-bottom: 10px;
-  }
-  .card h3 {
-    font-size: 17px;
-    margin-bottom: 6px;
-  }
-  .card .desc {
-    font-size: 13px;
-    color: var(--gray);
-    margin-bottom: 14px;
-    min-height: 40px;
-  }
-
-  /* Размер — общий блок, как цвет */
-  .sizes-block {
-    padding: 24px 0 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .sizes-block h2 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .sizes {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-  }
-
-  /* Кнопка размера: при наведении показываем длину стержня вместо названия */
-  .size-btn {
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-    color: var(--black);
-    transition: border-color .15s, color .15s, background .15s;
-    position: relative;
-    min-width: 120px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .size-btn:hover {
-    border-color: var(--green);
-    color: var(--green);
-  }
-  .size-btn.selected {
-    border-color: var(--green);
-    color: var(--green);
-    font-weight: 600;
-  }
-
-  .size-btn .label { display: inline-block; }
-  .size-btn .stem {
-    display: none;
-    font-weight: 400;
-    font-size: 13px;
-  }
-  .size-btn:hover .label { display: none; }
-  .size-btn:hover .stem { display: inline; }
-
-  /* Функции */
-  .functions-block {
-    padding: 24px 0 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .functions-block h2 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .functions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-  .function-btn {
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-    color: var(--black);
-    transition: background .15s, border-color .15s, color .15s;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    line-height: 1.2;
-  }
-  .function-btn:hover {
-    border-color: var(--green);
-    color: var(--green);
-  }
-  .function-btn.selected {
+    border-color: var(--green); box-shadow: 0 0 0 1px var(--green);
     background: var(--green-light);
-    border-color: var(--green);
-    color: var(--green);
-    font-weight: 600;
   }
-  .function-btn .name {
-    font-size: 14px;
-    font-weight: inherit;
+  .card .badge {
+    display: inline-block; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--green); border: 1px solid var(--green);
+    border-radius: 999px; padding: 1px 6px; align-self: flex-start; margin-bottom: 4px;
   }
+  .card h3 { font-size: 15px; }
+  .card .desc { font-size: 12px; color: var(--gray); }
+  .card .price { font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+  .function-btn {
+    border: 1px solid #ddd; background: #fff; border-radius: 8px;
+    padding: 7px 10px; font-size: 13px; font-family: inherit;
+    cursor: pointer; color: var(--black);
+    transition: background .15s, border-color .15s, color .15s;
+    display: inline-flex; flex-direction: column; align-items: center;
+    gap: 1px; line-height: 1.2; flex: 1 1 auto;
+  }
+  .function-btn:hover { border-color: var(--green); color: var(--green); }
+  .function-btn.selected {
+    background: var(--green-light); border-color: var(--green);
+    color: var(--green); font-weight: 600;
+  }
+  .function-btn .name { font-size: 13px; font-weight: inherit; }
   .function-btn .plus {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--green);
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
+    font-size: 10px; font-weight: 400; color: var(--green);
+    max-height: 0; opacity: 0; overflow: hidden;
     transition: max-height .15s, opacity .15s;
   }
-  .function-btn.selected .plus {
-    max-height: 20px;
-    opacity: 1;
-  }
-
-  /* Выбор цвета */
-  .colors-block {
-    padding: 24px 0 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .colors-block h2 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .colors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
+  .function-btn.selected .plus { max-height: 20px; opacity: 1; }
 
   .color-btn {
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    cursor: pointer;
+    border: 1px solid #ddd; background: #fff; border-radius: 8px;
+    padding: 7px 10px; font-size: 13px; cursor: pointer;
     transition: background .15s, border-color .15s, color .15s;
-    font-family: inherit;
-    color: var(--black);
+    font-family: inherit; color: var(--black); flex: 1 1 auto;
   }
-  .color-btn:hover {
-    background: var(--c);
-    border-color: var(--c);
-    color: var(--text, #fff);
-  }
+  .color-btn:hover { background: var(--c); border-color: var(--c); color: var(--text, #fff); }
   .color-btn.selected {
-    background: var(--c);
-    border-color: var(--c);
-    color: var(--text, #fff);
-    font-weight: 600;
+    background: var(--c); border-color: var(--c);
+    color: var(--text, #fff); font-weight: 600;
   }
-  .color-btn[data-color="Белый"],
   .color-btn[data-color="Серый"],
-  .color-btn[data-color="Зелёный"]{
-    --text: #111;
+  .color-btn[data-color="Зелёный"] { --text: #111; }
+
+  .texture-input {
+    width: calc(100% + 16px); margin: 0 -8px; border: 2px dashed #ddd; border-radius: 10px;
+    padding: 14px 16px; font-size: 14px; font-weight: 500; font-family: inherit;
+    cursor: pointer; background: #f9f9f9; color: var(--gray);
+    transition: border-color .15s, background .15s;
+    text-align: center;
+  }
+  .texture-input:hover { border-color: var(--green); background: var(--green-light); }
+  .texture-input::file-selector-button {
+    border: 1px solid var(--green); background: var(--green-light);
+    color: var(--green); border-radius: 8px; padding: 6px 14px;
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 10px;
+    font-family: inherit; transition: background .15s, color .15s;
+  }
+  .texture-input::file-selector-button:hover {
+    background: var(--green); color: #fff;
   }
 
-  /* Итог, контакт и кнопка */
-  .order-block {
-    padding: 32px 0 64px;
-    border-top: 1px solid #e5e5e5;
-    margin-top: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .viewer-wrap { position: sticky; top: 16px; }
+  .viewer {
+    position: relative; width: 100%; height: calc(100vh - 140px);
+    min-height: 420px; border: 1px solid var(--border);
+    border-radius: 16px;
+    background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #f4f4f4 70%, #ececec 100%);
+    overflow: hidden;
   }
-  .summary {
-    font-size: 14px;
-    color: var(--gray);
-    margin-bottom: 16px;
-    min-height: 20px;
-    line-height: 1.7;
+  .viewer canvas { display: block; width: 100%; height: 100%; }
+  .viewer .viewer-hint {
+    position: absolute; bottom: 12px; left: 0; right: 0;
+    font-size: 12px; color: var(--gray); text-align: center;
+    pointer-events: none;
   }
+  .viewer .viewer-label {
+    position: absolute; top: 12px; left: 12px; font-size: 12px;
+    color: var(--gray); background: rgba(255,255,255,.85);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 10px; pointer-events: none; z-index: 2;
+  }
+  .viewer .no-three {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; font-size: 14px; color: var(--gray);
+    padding: 20px; text-align: center;
+  }
+  .viewer .loading {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; background: rgba(255,255,255,.7);
+    font-size: 14px; color: var(--gray); z-index: 3;
+  }
+
+  .order-card { border: 1px solid var(--border); border-radius: 14px; padding: 20px; background: #fff; }
+  .order-card h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .summary { font-size: 13px; color: var(--gray); margin-bottom: 16px; line-height: 1.6; }
   .summary b { color: var(--black); }
   .summary .green { color: var(--green); font-weight: 600; }
-  .summary .total {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--black);
-  }
-  .summary .total .green { font-size: 18px; }
+  .summary .total { display: block; font-size: 20px; font-weight: 700; color: var(--black); margin-top: 10px; }
+  .summary .total .green { font-size: 20px; }
 
-  /* Поле контакта */
-  .contact-field {
-    width: 100%;
-    max-width: 360px;
-    margin-bottom: 12px;
-  }
-  .contact-field label {
-    display: block;
-    font-size: 13px;
-    color: var(--gray);
-    margin-bottom: 6px;
-    text-align: left;
-  }
+  .contact-field { margin-bottom: 10px; }
+  .contact-field label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
   .contact-field input {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--black);
-    background: #fff;
-    transition: border-color .15s;
+    width: 100%; border: 1px solid #ddd; border-radius: 10px;
+    padding: 11px 13px; font-size: 14px; font-family: inherit;
+    color: var(--black); background: #fff;
   }
-  .contact-field input:focus {
-    outline: none;
-    border-color: var(--green);
-  }
-  .contact-field input.invalid {
-    border-color: #d32f2f;
-  }
-  .contact-error {
-    font-size: 12px;
-    color: #d32f2f;
-    text-align: left;
-    margin-top: 4px;
-    min-height: 16px;
-  }
+  .contact-field input:focus { outline: none; border-color: var(--green); }
+  .contact-field input.invalid { border-color: #d32f2f; }
+  .contact-error { font-size: 12px; color: #d32f2f; margin-top: 4px; min-height: 16px; }
 
   .btn-order {
-    display: inline-block;
-    background: var(--black);
-    color: #fff;
-    text-decoration: none;
-    padding: 16px 32px;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background .15s, opacity .15s;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
+    width: 100%; background: var(--black); color: #fff;
+    padding: 14px 24px; border-radius: 10px; font-size: 15px;
+    font-weight: 600; border: none; cursor: pointer; font-family: inherit;
+    margin-top: 6px;
   }
   .btn-order:hover { background: var(--green); }
-  .btn-order.disabled {
-    background: #ccc;
-    pointer-events: none;
-    cursor: not-allowed;
-  }
-  .hint {
-    font-size: 13px;
-    color: var(--gray);
-    margin-top: 10px;
-  }
-  /* Сообщение после отправки */
-  .order-message {
-    font-size: 14px;
-    margin-top: 14px;
-    min-height: 20px;
-  }
+  .btn-order.disabled { background: #ccc; pointer-events: none; cursor: not-allowed; }
+  .hint { font-size: 12px; color: var(--gray); margin-top: 10px; text-align: center; }
+  .order-message { font-size: 13px; margin-top: 12px; min-height: 18px; text-align: center; }
   .order-message.ok { color: var(--green); font-weight: 600; }
   .order-message.err { color: #d32f2f; font-weight: 600; }
 
-  /* Приглашение написать нам */
-  .contact-invite {
-    font-size: 14px;
-    color: var(--gray);
-    margin-top: 8px;
-  }
-  .contact-invite a {
-    color: var(--green);
-    text-decoration: none;
-    font-weight: 600;
-    border-bottom: 1px dashed var(--green);
-    transition: opacity .15s;
-  }
-  .contact-invite a:hover {
-    opacity: .75;
-  }
-  .contact-invite .sep {
-    color: #ccc;
-    margin: 0 4px;
-  }
+  .contact-invite { font-size: 13px; color: var(--gray); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); line-height: 1.7; }
+  .contact-invite a { color: var(--green); text-decoration: none; font-weight: 600; border-bottom: 1px dashed var(--green); }
+  .contact-invite .sep { color: #ccc; margin: 0 3px; }
 
-  @media (max-width: 720px) {
-    .cards { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 26px; }
-    .hero { padding: 40px 0 24px; }
-    .card .photo { opacity: 1; position: static; margin-bottom: 12px; border-radius: 8px; height: 160px; }
-    .card .desc, .card .badge { display: none; }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 260px minmax(0, 1fr); }
+    .viewer { height: 420px; }
+  }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; padding: 14px; }
+    .viewer { height: 320px; min-height: 280px; }
   }
 </style>
 </head>
@@ -530,223 +203,179 @@
 <header>
   <div class="wrap">
     <div class="logo"><span>не</span>просто ручка</div>
-    <div class="tagline">Весь пенал в твоих руках</div>
+    <div class="tagline">Весь пенал в твоих руках · от 250 ₽</div>
   </div>
 </header>
 
-<main class="wrap">
+<main class="layout">
 
-  <section class="hero">
-    <h1>Непросто ручка</h1>
-    <p>
-      Одна ручка — <span class="accent">пять функций</span>.
-      <br>Собери свою ручку сам по цене <em class="ice-latte">айс-латте</em>
-    </p>
-    <div class="hero-price">от <span class="accent">250 ₽</span></div>
-  </section>
-
-  <!-- Карточки товаров -->
-  <h3 class="section-title">Корпус</h3>
-  <section class="cards" id="cards">
-    <div class="card" data-id="just" data-name="JUST" data-base="250">
-      <div class="photo">
-        <div class="gallery">
-          <img src="img/j1.jpeg" alt="JUST 1" class="active">
-          <img src="img/j2.jpeg" alt="JUST 2">
-          <img src="img/j3.jpeg" alt="JUST 3">
-          <img src="img/j4.jpeg" alt="JUST 4">
+  <aside class="panel-left">
+    <section class="panel-section">
+      <h2>Корпус</h2>
+      <div class="cards" id="cards">
+        <div class="card" data-id="just" data-name="JUST" data-base="250">
+          <span class="badge">Классика</span>
+          <h3>JUST</h3>
+          <p class="desc">Ручка и карандаш на разных концах корпуса</p>
+          <div class="price">250 ₽</div>
         </div>
-        <button class="nav prev" type="button" aria-label="Назад">‹</button>
-        <button class="nav next" type="button" aria-label="Вперёд">›</button>
-        <div class="dots"></div>
-      </div>
-      <span class="badge">Классика</span>
-      <h3>JUST</h3>
-      <p class="desc">Один конец — ручка, другой — карандаш. Остальное на корпусе</p>
-    </div>
-
-    <div class="card" data-id="snap" data-name="SNAP" data-base="250">
-      <div class="photo">
-        <div class="gallery">
-          <img src="img/s1.jpeg" alt="SNAP 1" class="active">
-          <img src="img/s2.jpeg" alt="SNAP 2">
-          <img src="img/s3.jpeg" alt="SNAP 3">
-          <img src="img/s4.jpeg" alt="SNAP 4">
+        <div class="card" data-id="snap" data-name="SNAP" data-base="250">
+          <span class="badge">Конструктор</span>
+          <h3>SNAP</h3>
+          <p class="desc">Крепление для карандаша крепится к ручке</p>
+          <div class="price">250 ₽</div>
         </div>
-        <button class="nav prev" type="button" aria-label="Назад">‹</button>
-        <button class="nav next" type="button" aria-label="Вперёд">›</button>
-        <div class="dots"></div>
       </div>
-      <span class="badge">Хай-тек</span>
-      <h3>SNAP</h3>
-      <p class="desc">Каждая принадлежность — съёмный модуль. Для любителей конструктора</p>
-    </div>
-  </section>
+    </section>
 
-  <!-- Размер (общий для всех корпусов) -->
-  <section class="sizes-block">
-    <h2>Размер стержня</h2>
-    <div class="sizes" id="sizes">
-      <button class="size-btn" data-size="long">
-        <span class="label">Long</span>
-        <span class="stem">130 мм</span>
-      </button>
-      <button class="size-btn" data-size="lite">
-        <span class="label">Lite</span>
-        <span class="stem">90 мм</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Функции -->
-  <section class="functions-block">
-    <h2>Функции</h2>
-    <div class="functions" id="functions">
-      <button class="function-btn" data-function="Ручка" data-price="10">
-        <span class="name">Ручка</span>
-        <span class="plus">+10 ₽</span>
-      </button>
-      <button class="function-btn" data-function="Карандаш" data-price="10">
-        <span class="name">Карандаш</span>
-        <span class="plus">+10 ₽</span>
-      </button>
-      <button class="function-btn" data-function="Линейка" data-price="10">
-        <span class="name">Линейка</span>
-        <span class="plus">+10 ₽</span>
-      </button>
-      <button class="function-btn" data-function="Точилка" data-price="10">
-        <span class="name">Точилка</span>
-        <span class="plus">+10 ₽</span>
-      </button>
-      <button class="function-btn" data-function="Ластик" data-price="10">
-        <span class="name">Ластик</span>
-        <span class="plus">+10 ₽</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Выбор цвета -->
-  <section class="colors-block">
-    <h2>Цвет</h2>
-    <div class="colors" id="colors">
-      <button class="color-btn" data-color="Белый" style="--c:#ffffff">Белый</button>
-      <button class="color-btn" data-color="Чёрный" style="--c:#111111">Чёрный</button>
-      <button class="color-btn" data-color="Серый" style="--c:#9e9e9e">Серый</button>
-      <button class="color-btn" data-color="Синий" style="--c:#1565c0">Синий</button>
-      <button class="color-btn" data-color="Красный" style="--c:#d32f2f">Красный</button>
-      <button class="color-btn" data-color="Оранжевый" style="--c:#f57c00">Оранжевый</button>
-      <button class="color-btn" data-color="Зелёный" style="--c:#98fb98">Зелёный</button>
-    </div>
-  </section>
-
-  <!-- Итог, контакт и заказ -->
-  <section class="order-block">
-    <div class="summary" id="summary">Выберите корпус, размер и цвет</div>
-
-    <!-- Форма для отправки в Google Apps Script -->
-    <form id="orderForm" action="https://script.google.com/macros/s/AKfycbzwGoJXqdVGUdPoS42uLQG0YWvof-Ddc03SmIE66ZfKmIyFjUgqUJCpOXABnB9PdEuykQ/exec" method="POST" target="_blank">
-      <div class="contact-field">
-        <label for="contactInput">Оставьте телеграмм, email или другой контакт</label>
-        <input type="text" id="contactInput" name="Контакт" placeholder="Контакт" autocomplete="off">
-        <div class="contact-error" id="contactError"></div>
+    <section class="panel-section">
+      <h2>Функции</h2>
+      <div class="functions" id="functions">
+        <button class="function-btn" data-function="Линейка" data-price="10"><span class="name">Линейка</span><span class="plus">+10 ₽</span></button>
+        <button class="function-btn" data-function="Точилка" data-price="10"><span class="name">Точилка</span><span class="plus">+10 ₽</span></button>
+        <button class="function-btn" data-function="Ластик" data-price="10"><span class="name">Ластик</span><span class="plus">+10 ₽</span></button>
       </div>
+    </section>
 
-      <!-- Скрытые поля, которые заполняются скриптом перед отправкой -->
-      <input type="hidden" name="Корпус" id="f-corpus">
-      <input type="hidden" name="Размер" id="f-size">
-      <input type="hidden" name="Цвет" id="f-color">
-      <input type="hidden" name="Функции" id="f-funcs">
-      <input type="hidden" name="Итого" id="f-total">
+    <section class="panel-section">
+      <h2>Цвет</h2>
+      <div class="colors" id="colors">
+        <button class="color-btn selected" data-color="Серый" style="--c:#9e9e9e">Серый</button>
+        <button class="color-btn" data-color="Чёрный" style="--c:#111111">Чёрный</button>
+        <button class="color-btn" data-color="Синий" style="--c:#1565c0">Синий</button>
+        <button class="color-btn" data-color="Красный" style="--c:#d32f2f">Красный</button>
+        <button class="color-btn" data-color="Оранжевый" style="--c:#f57c00">Оранжевый</button>
+        <button class="color-btn" data-color="Зелёный" style="--c:#98fb98">Зелёный</button>
+      </div>
+    </section>
 
-      <button type="submit" class="btn-order disabled" id="orderBtn">Заказать</button>
-    </form>
+    <section class="panel-section">
+      <h2>Рисунок на корпусе</h2>
+      <div>
+        <input type="file" id="textureInput" accept="image/*" class="texture-input">
+        <div id="textureName" style="font-size: 11px; color: var(--gray); margin-top: 4px;"></div>
+      </div>
+    </section>
+  </aside>
 
-    <p class="hint">Мы свяжемся с вами по указанному контакту.</p>
-    <p class="contact-invite">
-      Или напиши нам
-      <br>
-      <span class="plain">kvkazak3@gmail.com</span>
-      <span class="sep">·</span>
-      <a href="https://t.me/multivation_co?direct" target="_blank" rel="noopener">Telegram</a>	
-      <span class="sep">·</span>
-      <a href="https://vk.ru/multivation" target="_blank" rel="noopener">VK</a>	
-      <span class="sep">·</span>
-      <a href="https://www.avito.ru/perm/orgtehnika_i_rashodniki/ruchka-penal_5_v_1_podarochnaya_s_vashim_risunkom_8395190839" target="_blank" rel="noopener">Avito</a>	
-      <span class="sep">·</span>
-      <a href="https://www.ozon.ru/product/6271785355/" target="_blank" rel="noopener">Ozon</a>	
-      <span class="sep">·</span>
-      <a href="https://market.yandex.ru/card/-/245518263650758656?businessId=217088104" target="_blank" rel="noopener">Яндекс.Маркет</a>	
-      <span class="sep">·</span>
-      <span class="plain">+7 982 458-10-06</span>
-    </p>
-    <div class="order-message" id="orderMessage"></div>
+  <section class="viewer-wrap">
+    <div class="viewer" id="viewer">
+      <span class="viewer-label" id="viewerLabel">Выберите параметры</span>
+      <div class="viewer-hint">Вращайте мышью · колесо — зум</div>
+      <div class="loading" id="loadingOverlay" style="display:none;">Загрузка модели…</div>
+    </div>
   </section>
+
+  <aside>
+    <div class="order-card">
+      <h2>Ваш заказ</h2>
+      <div class="summary" id="summary">Выберите корпус и цвет</div>
+
+      <form id="orderForm" action="https://script.google.com/macros/s/AKfycbzwGoJXqdVGUdPoS42uLQG0YWvof-Ddc03SmIE66ZfKmIyFjUgqUJCpOXABnB9PdEuykQ/exec" method="POST" target="_blank">
+        <div class="contact-field">
+          <label for="contactInput">Телеграм, email или другой контакт</label>
+          <input type="text" id="contactInput" name="Контакт" placeholder="Контакт" autocomplete="off">
+          <div class="contact-error" id="contactError"></div>
+        </div>
+
+        <input type="hidden" name="Корпус" id="f-corpus">
+        <input type="hidden" name="Цвет" id="f-color">
+        <input type="hidden" name="Функции" id="f-funcs">
+        <input type="hidden" name="Итого" id="f-total">
+
+        <button type="submit" class="btn-order disabled" id="orderBtn">Заказать</button>
+      </form>
+
+      <p class="hint">Мы свяжемся с вами по указанному контакту.</p>
+      <div class="order-message" id="orderMessage"></div>
+
+      <div class="contact-invite">
+        Или напиши нам<br>
+        <span>kvkazak3@gmail.com</span><span class="sep">·</span><span>+7 982 458-10-06</span>
+      </div>
+    </div>
+  </aside>
 
 </main>
 
-<script>
-  // ==== ЛОГИКА ====
-  let selectedProduct = null; // { id, name, base }
-  let selectedSize = null;    // { size }
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+  // ================= СОСТОЯНИЕ =================
+  let selectedProduct = null;
   let selectedColor = null;
-  let selectedFunctions = []; // [{ name, price }]
+  let selectedFunctions = [];
+  let currentTexture = null;
+  let currentTextureUrl = null;
 
   const cards = document.querySelectorAll('.card');
-  const sizeBtns = document.querySelectorAll('.size-btn');
   const colorBtns = document.querySelectorAll('.color-btn');
   const functionBtns = document.querySelectorAll('.function-btn');
+  const textureInput = document.getElementById('textureInput');
+  const textureName = document.getElementById('textureName');
   const summary = document.getElementById('summary');
   const orderBtn = document.getElementById('orderBtn');
   const orderForm = document.getElementById('orderForm');
   const contactInput = document.getElementById('contactInput');
   const contactError = document.getElementById('contactError');
   const orderMessage = document.getElementById('orderMessage');
+  const viewerLabel = document.getElementById('viewerLabel');
+  const loadingOverlay = document.getElementById('loadingOverlay');
 
-  // ==== Сбор выбранных функций ====
+  // Инициализация цвета из кнопки, которая уже имеет class="selected"
+  const initialColorBtn = document.querySelector('.color-btn.selected');
+  if (initialColorBtn) {
+    selectedColor = initialColorBtn.dataset.color;
+  }
+
+  // ================= UI =================
   function updateFunctions() {
     selectedFunctions = Array.from(functionBtns)
       .filter(b => b.classList.contains('selected'))
-      .map(b => ({
-        name: b.dataset.function,
-        price: Number(b.dataset.price)
-      }));
+      .map(b => ({ name: b.dataset.function, price: Number(b.dataset.price) }));
   }
 
   function totalPrice() {
     if (!selectedProduct) return 0;
     const base = Number(selectedProduct.base);
-    const add = selectedFunctions.reduce((sum, f) => sum + f.price, 0);
+    const add = selectedFunctions.reduce((s, f) => s + f.price, 0);
     return base + add;
   }
 
   function updateSummary() {
-    const ready = selectedProduct && selectedSize && selectedColor;
-
+    const ready = selectedProduct && selectedColor;
     if (ready) {
-      const add = selectedFunctions.reduce((sum, f) => sum + f.price, 0);
-
+      const add = selectedFunctions.reduce((s, f) => s + f.price, 0);
       let html =
-        'Выбрано: <b>' + selectedProduct.name + '</b> · ' +
-        'размер <b>' + selectedSize.size + '</b> · ' +
+        '<b>' + selectedProduct.name + '</b> · ' +
         'цвет <b>' + selectedColor + '</b><br>';
-
-      if (selectedFunctions.length > 0) {
-        html += 'функции: <b>' + selectedFunctions.map(f => f.name).join(', ') + '</b> ';
-        html += '(+' + add + ' ₽)<br>';
+      if (selectedFunctions.length) {
+        html += 'функции: <b>' + selectedFunctions.map(f => f.name).join(', ') + '</b> (+' + add + ' ₽)';
       } else {
-        html += 'функции не выбраны<br>';
+        html += 'функции не выбраны';
       }
-
-      html += 'Итого: <span class="total"><span class="green">' + totalPrice() + ' ₽</span></span>';
+      html += '<span class="total">Итого: <span class="green">' + totalPrice() + ' ₽</span></span>';
       summary.innerHTML = html;
       orderBtn.classList.remove('disabled');
     } else {
       const missing = [];
       if (!selectedProduct) missing.push('корпус');
-      if (!selectedSize) missing.push('размер');
       if (!selectedColor) missing.push('цвет');
       summary.textContent = 'Осталось выбрать: ' + missing.join(', ');
       orderBtn.classList.add('disabled');
+    }
+
+    if (viewerLabel) {
+      viewerLabel.textContent =
+        (selectedProduct ? selectedProduct.name : '—') + ' · ' +
+        (selectedColor || '—');
     }
   }
 
@@ -754,21 +383,9 @@
     card.addEventListener('click', () => {
       cards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedProduct = {
-        id: card.dataset.id,
-        name: card.dataset.name,
-        base: card.dataset.base
-      };
+      selectedProduct = { id: card.dataset.id, name: card.dataset.name, base: card.dataset.base };
       updateSummary();
-    });
-  });
-
-  sizeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      sizeBtns.forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedSize = { size: btn.dataset.size };
-      updateSummary();
+      window.refreshPen3D();
     });
   });
 
@@ -778,6 +395,9 @@
       btn.classList.add('selected');
       selectedColor = btn.dataset.color;
       updateSummary();
+      if (currentModel) {
+        applyColorToModel(currentModel, selectedColor);
+      }
     });
   });
 
@@ -786,76 +406,79 @@
       btn.classList.toggle('selected');
       updateFunctions();
       updateSummary();
+      if (currentModel) {
+        applyColorToModel(currentModel, selectedColor);
+      }
     });
   });
 
-  // ==== Галерея с авто-прокруткой и автогенерацией точек ====
-  document.querySelectorAll('.card .photo').forEach(photo => {
-    const card = photo.closest('.card');
-    const imgs = photo.querySelectorAll('.gallery img');
-    const dotsWrap = photo.querySelector('.dots');
-    const prev = photo.querySelector('.nav.prev');
-    const next = photo.querySelector('.nav.next');
-    let current = 0;
-    let timer = null;
-
-    if (dotsWrap) {
-      dotsWrap.innerHTML = '';
-      imgs.forEach((_, i) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.setAttribute('aria-label', 'Фото ' + (i + 1));
-        if (i === 0) b.classList.add('active');
-        dotsWrap.appendChild(b);
-      });
+  textureInput.addEventListener('change', (e) => {
+    if (currentTextureUrl) {
+      URL.revokeObjectURL(currentTextureUrl);
+      currentTextureUrl = null;
     }
 
-    const dots = dotsWrap ? dotsWrap.querySelectorAll('button') : [];
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        e.target.value = '';
+        textureName.textContent = '';
+        currentTexture = null;
+        alert('Пожалуйста, выберите изображение.');
+        if (currentModel) applyColorToModel(currentModel, selectedColor);
+        return;
+      }
 
-    function show(index) {
-      if (!imgs.length) return;
-      current = (index + imgs.length) % imgs.length;
-      imgs.forEach((img, i) => img.classList.toggle('active', i === current));
-      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+      textureName.textContent = file.name;
+      currentTextureUrl = URL.createObjectURL(file);
+
+      texLoader.load(
+        currentTextureUrl,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.flipY = false;
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+          tex.generateMipmaps = true;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          tex.needsUpdate = true;
+
+          currentTexture = tex;
+          if (currentModel) {
+            applyColorToModel(currentModel, selectedColor);
+          }
+        },
+        undefined,
+        () => {
+          console.error('Ошибка загрузки текстуры');
+          currentTexture = null;
+          textureName.textContent = '';
+          if (currentModel) applyColorToModel(currentModel, selectedColor);
+        }
+      );
+    } else {
+      textureName.textContent = '';
+      currentTexture = null;
+      if (currentModel) applyColorToModel(currentModel, selectedColor);
     }
-
-    card.addEventListener('mouseenter', () => {
-      if (imgs.length < 2) return;
-      timer = setInterval(() => show(current + 1), 1200);
-    });
-    card.addEventListener('mouseleave', () => {
-      clearInterval(timer);
-      timer = null;
-      show(0);
-    });
-
-    if (prev) prev.addEventListener('click', (e) => { e.stopPropagation(); show(current - 1); });
-    if (next) next.addEventListener('click', (e) => { e.stopPropagation(); show(current + 1); });
-    dots.forEach((dot, i) => {
-      dot.addEventListener('click', (e) => { e.stopPropagation(); show(i); });
-    });
   });
 
-  // Инициализация
   updateFunctions();
   updateSummary();
 
-  // ==== Отправка формы ====
-  orderForm.addEventListener('submit', (e) => {
+  orderForm.addEventListener('submit', e => {
     orderMessage.textContent = '';
     orderMessage.className = 'order-message';
 
-    // Проверка, что выбраны корпус, размер и цвет
-    if (!selectedProduct || !selectedSize || !selectedColor) {
+    if (!selectedProduct || !selectedColor) {
       e.preventDefault();
-      orderMessage.textContent = 'Сначала выберите корпус, размер и цвет.';
+      orderMessage.textContent = 'Сначала выберите корпус и цвет.';
       orderMessage.classList.add('err');
       return;
     }
-
-    // Проверка: поле контакта не должно быть пустым
     const contact = contactInput.value.trim();
-    if (contact === '') {
+    if (!contact) {
       e.preventDefault();
       contactInput.classList.add('invalid');
       contactError.textContent = 'Поле не может быть пустым.';
@@ -864,24 +487,344 @@
     contactInput.classList.remove('invalid');
     contactError.textContent = '';
 
-    // Заполняем скрытые поля перед отправкой
     document.getElementById('f-corpus').value = selectedProduct.name;
-    document.getElementById('f-size').value = selectedSize.size;
     document.getElementById('f-color').value = selectedColor;
     document.getElementById('f-funcs').value = selectedFunctions.map(f => f.name).join(', ') || 'нет';
     document.getElementById('f-total').value = totalPrice();
 
-    // Форма отправится сама (target="_blank" откроет ответ в новой вкладке)
     orderMessage.textContent = 'Отправляем заказ...';
     orderMessage.classList.add('ok');
   });
 
-  // Снимаем подсветку ошибки при вводе
   contactInput.addEventListener('input', () => {
     contactInput.classList.remove('invalid');
     contactError.textContent = '';
   });
-</script>
 
+  // ================= THREE.JS =================
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+  const container = document.getElementById('viewer');
+  if (!container) throw new Error('viewer not found');
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+  camera.position.set(0, 1.4, 6.4);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.9;
+  container.appendChild(renderer.domElement);
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+  dir.position.set(3, 5, 4);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.5);
+  dir2.position.set(-3, -2, -4);
+  scene.add(dir2);
+
+  const penGroup = new THREE.Group();
+  penGroup.rotation.x = -0.67;
+  penGroup.rotation.y = 3.3;
+  scene.add(penGroup);
+
+  const modelCache = new Map();
+  let currentModel = null;
+  let loadId = 0;
+  let baseCameraDistance = 5;
+
+  const colorMap = {
+    'Чёрный': 0x111111,
+    'Серый': 0x9e9e9e,
+    'Синий': 0x1565c0,
+    'Красный': 0xd32f2f,
+    'Оранжевый': 0xf57c00,
+    'Зелёный': 0x98fb98
+  };
+
+  const GROUP_TO_FUNCTION = {
+    'eraser': 'Ластик',
+    'sharp':  'Точилка',
+    'ruler':  'Линейка',
+  };
+
+  const loader = new GLTFLoader();
+  const texLoader = new THREE.TextureLoader();
+
+  function getModelUrl(corpus) {
+    return `models/${corpus}.gltf`;
+  }
+
+  // Клонируем материалы, чтобы каждый инстанс имел свои
+  function cloneWithMaterials(source) {
+    const clone = source.clone(true);
+    clone.traverse(obj => {
+      if (obj.isMesh && obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material = obj.material.map(m => m.clone());
+        } else {
+          obj.material = obj.material.clone();
+        }
+      }
+    });
+    return clone;
+  }
+
+  function applyColorToModel(root, colorName) {
+    const hex = colorMap[colorName] ?? 0x9e9e9e;
+    const selectedNames = new Set(selectedFunctions.map(f => f.name));
+
+    root.traverse(obj => {
+      obj.visible = true;
+
+      const fn = GROUP_TO_FUNCTION[obj.name];
+      if (fn && !selectedNames.has(fn)) {
+        obj.visible = false;
+        return;
+      }
+
+      if (!obj.isMesh || !obj.material) return;
+
+      const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+      const nameLower = (obj.name || '').toLowerCase();
+
+      // Гибкое определение корпуса
+      const isCorpus =
+        nameLower.startsWith('corpus');
+
+      mats.forEach(mat => {
+        if (mat.color) mat.color.setHex(hex);
+        if (mat.emissive) mat.emissive.setHex(0x000000);
+
+        if (isCorpus) {
+          if (currentTexture) {
+            mat.map = currentTexture;
+            mat.map.colorSpace = THREE.SRGBColorSpace;
+            
+            // Важно для цилиндрических объектов (ручка)
+            mat.map.wrapS = THREE.RepeatWrapping;
+            mat.map.wrapT = THREE.RepeatWrapping;
+            
+            // Попробуйте эти значения (самое частое решение)
+            mat.map.repeat.set(1, 1);        // можно менять: 2, 0.5, 3 и т.д.
+            // mat.map.repeat.set(2, 1);     // чаще всего помогает на ручках
+            // mat.map.repeat.set(1, 0.5);
+            
+            mat.map.offset.set(0, 0);
+            mat.map.rotation = 0;
+            mat.map.center.set(0.5, 0.5);
+            
+            mat.map.needsUpdate = true;
+            
+            // Цвет обязательно белый
+            mat.color.setHex(0xffffff);
+            
+            // Иногда помогает
+            if (mat.roughness !== undefined) mat.roughness = 0.6;
+            if (mat.metalness !== undefined) mat.metalness = 0.1;
+          } else {
+            mat.map = null;
+          }
+        } else {
+          mat.map = null;
+        }
+
+        mat.needsUpdate = true;
+      });
+    });
+  }
+
+  function clearPenGroup() {
+    while (penGroup.children.length) {
+      const child = penGroup.children[0];
+      penGroup.remove(child);
+
+      child.traverse(obj => {
+        if (obj.isMesh && obj.material) {
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(m => m.dispose());
+        }
+        // Геометрии не диспоузим — они общие с кэшем
+      });
+    }
+    currentModel = null;
+  }
+
+  function showLoading(show) {
+    if (loadingOverlay) loadingOverlay.style.display = show ? 'flex' : 'none';
+  }
+
+  function showError(msg) {
+    let err = container.querySelector('.no-three');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'no-three';
+      container.appendChild(err);
+    }
+    err.innerHTML = msg;
+    err.style.display = 'flex';
+  }
+
+  function hideError() {
+    const err = container.querySelector('.no-three');
+    if (err) err.style.display = 'none';
+  }
+
+  async function loadModel(url) {
+    if (modelCache.has(url)) {
+      return cloneWithMaterials(modelCache.get(url));
+    }
+
+    return new Promise((resolve, reject) => {
+      loader.load(
+        url,
+        gltf => {
+          const scene = gltf.scene;
+          scene.scale.set(1, 1, 1);
+
+          // Логируем имена всех мешей — откройте консоль (F12)
+          console.log('=== Меши модели', url, '===');
+          scene.traverse(o => {
+            if (o.isMesh) console.log('Mesh name:', o.name);
+          });
+
+          modelCache.set(url, scene);
+          resolve(cloneWithMaterials(scene));
+        },
+        undefined,
+        err => reject(err)
+      );
+    });
+  }
+
+  function fitModelAndCamera(model) {
+    let box = new THREE.Box3().setFromObject(model);
+    let size = box.getSize(new THREE.Vector3());
+    let maxDim = Math.max(size.x, size.y, size.z);
+
+    if (!isFinite(maxDim) || maxDim <= 0) {
+      console.warn('Не удалось определить размер модели');
+      return;
+    }
+
+    const TARGET_SIZE = 4;
+    const scale = TARGET_SIZE / maxDim;
+    model.scale.setScalar(scale);
+
+    box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center);
+
+    const box2 = new THREE.Box3().setFromObject(model);
+    const size2 = box2.getSize(new THREE.Vector3());
+    const maxSize = Math.max(size2.x, size2.y, size2.z);
+
+    const fov = camera.fov * Math.PI / 180;
+    const fitHeightDistance = maxSize / (2 * Math.tan(fov / 2));
+    const fitWidthDistance = fitHeightDistance / camera.aspect;
+    const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.2;
+
+    baseCameraDistance = distance;
+    camera.position.set(0, 0, distance);
+    camera.lookAt(0, 0, 0);
+  }
+
+  window.refreshPen3D = async function () {
+    const corpus = selectedProduct ? selectedProduct.name : 'JUST';
+    const colorName = selectedColor || 'Серый';
+
+    const url = getModelUrl(corpus);
+    const thisLoadId = ++loadId;
+
+    showLoading(true);
+    hideError();
+
+    try {
+      const model = await loadModel(url);
+      if (thisLoadId !== loadId) return;
+
+      clearPenGroup();
+      applyColorToModel(model, colorName);
+      fitModelAndCamera(model);
+      penGroup.add(model);
+      currentModel = model;
+    } catch (err) {
+      if (thisLoadId !== loadId) return;
+      console.error('Ошибка загрузки модели:', err);
+      clearPenGroup();
+      showError('Не удалось загрузить 3D-модель.<br>Проверьте наличие файлов models/JUST.gltf и models/SNAP.gltf');
+    } finally {
+      if (thisLoadId === loadId) showLoading(false);
+    }
+  };
+
+  // ================= ВРАЩЕНИЕ И ЗУМ =================
+  let isDragging = false;
+  let prevX = 0, prevY = 0;
+  let targetRotY = penGroup.rotation.y;
+  let targetRotX = penGroup.rotation.x;
+  const canvas = renderer.domElement;
+  canvas.style.cursor = 'grab';
+
+  canvas.addEventListener('pointerdown', e => {
+    isDragging = true;
+    prevX = e.clientX;
+    prevY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - prevX;
+    const dy = e.clientY - prevY;
+    prevX = e.clientX;
+    prevY = e.clientY;
+    targetRotY += dx * 0.01;
+    targetRotX += dy * 0.01;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+  });
+
+  window.addEventListener('pointerup', () => {
+    isDragging = false;
+    canvas.style.cursor = 'grab';
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const minDist = baseCameraDistance * 0.5;
+    const maxDist = baseCameraDistance * 2;
+    camera.position.z += e.deltaY * 0.003;
+    camera.position.z = Math.max(minDist, Math.min(maxDist, camera.position.z));
+  }, { passive: false });
+
+  function resize() {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    penGroup.rotation.y += (targetRotY - penGroup.rotation.y) * 0.12;
+    penGroup.rotation.x += (targetRotX - penGroup.rotation.x) * 0.12;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Первый запуск
+  window.refreshPen3D();
+</script>
 </body>
 </html>
