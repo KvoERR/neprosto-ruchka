@@ -184,6 +184,7 @@
   .order-message { font-size: 13px; margin-top: 12px; min-height: 18px; text-align: center; }
   .order-message.ok { color: var(--green); font-weight: 600; }
   .order-message.err { color: #d32f2f; font-weight: 600; }
+  .order-message a { color: inherit; text-decoration: underline; }
 
 .contact-invite {
   font-size: 13px; color: var(--gray); margin-top: 14px; padding-top: 14px;
@@ -287,10 +288,15 @@
       <h2>Ваш заказ</h2>
       <div class="summary" id="summary">Выберите корпус и цвет</div>
 
-      <form id="orderForm" action="https://script.google.com/macros/s/AKfycbzwGoJXqdVGUdPoS42uLQG0YWvof-Ddc03SmIE66ZfKmIyFjUgqUJCpOXABnB9PdEuykQ/exec" method="POST" target="_blank">
+      <form id="orderForm" action="https://formsubmit.co/b1a4afacffa8644daf3bd21b244214b6" method="POST">
+        <input type="hidden" name="_subject" value="Заказ с сайта — Непросто ручка">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+
         <div class="contact-field">
-          <label for="contactInput">Телеграм, email или другой контакт</label>
-          <input type="text" id="contactInput" name="Контакт" placeholder="Контакт" autocomplete="off">
+          <label for="contactInput">Телефон, email или ник</label>
+          <input type="text" id="contactInput" name="Контакт" placeholder="Например, +7 999 123-45-67" autocomplete="off">
           <div class="contact-error" id="contactError"></div>
         </div>
 
@@ -372,6 +378,11 @@
   const viewerLabel = document.getElementById('viewerLabel');
   const loadingOverlay = document.getElementById('loadingOverlay');
 
+  const FORMSUBMIT_TOKEN = 'b1a4afacffa8644daf3bd21b244214b6';
+  const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/' + FORMSUBMIT_TOKEN;
+  const FORMSUBMIT_FALLBACK = 'https://formsubmit.co/' + FORMSUBMIT_TOKEN;
+  orderForm.action = FORMSUBMIT_FALLBACK;
+
   // Инициализация цвета из кнопки, которая уже имеет class="selected"
   const initialColorBtn = document.querySelector('.color-btn.selected');
   if (initialColorBtn) {
@@ -407,6 +418,7 @@
       html += '<span class="total">Итого: <span class="green">' + totalPrice() + ' ₽</span></span>';
       summary.innerHTML = html;
       orderBtn.classList.remove('disabled');
+      orderBtn.textContent = 'Заказать';
     } else {
       const missing = [];
       if (!selectedProduct) missing.push('корпус');
@@ -510,33 +522,95 @@
   updateFunctions();
   updateSummary();
 
-  orderForm.addEventListener('submit', e => {
+  orderForm.addEventListener('submit', async e => {
+    e.preventDefault();
     orderMessage.textContent = '';
     orderMessage.className = 'order-message';
 
     if (!selectedProduct || !selectedColor) {
-      e.preventDefault();
       orderMessage.textContent = 'Сначала выберите корпус и цвет.';
       orderMessage.classList.add('err');
       return;
     }
     const contact = contactInput.value.trim();
     if (!contact) {
-      e.preventDefault();
       contactInput.classList.add('invalid');
       contactError.textContent = 'Поле не может быть пустым.';
+      contactInput.focus();
       return;
     }
     contactInput.classList.remove('invalid');
     contactError.textContent = '';
 
+    const total = totalPrice();
+    const funcs = selectedFunctions.map(f => f.name).join(', ') || 'нет';
+
     document.getElementById('f-corpus').value = selectedProduct.name;
     document.getElementById('f-color').value = selectedColor;
-    document.getElementById('f-funcs').value = selectedFunctions.map(f => f.name).join(', ') || 'нет';
-    document.getElementById('f-total').value = totalPrice();
+    document.getElementById('f-funcs').value = funcs;
+    document.getElementById('f-total').value = total;
 
-    orderMessage.textContent = 'Отправляем заказ...';
+    const body = new URLSearchParams();
+    body.set('_subject', 'Заказ с сайта: ' + selectedProduct.name + ', ' + total + ' ₽');
+    body.set('_template', 'table');
+    body.set('_captcha', 'false');
+    body.set('Корпус', selectedProduct.name);
+    body.set('Цвет', selectedColor);
+    body.set('Функции', funcs);
+    body.set('Итого', String(total));
+    body.set('Контакт', contact);
+
+    orderBtn.classList.add('disabled');
+    orderMessage.textContent = 'Отправляем заказ…';
     orderMessage.classList.add('ok');
+
+    try {
+      let lastError = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await fetch(FORMSUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body
+          });
+          let data = null;
+          try { data = await res.json(); } catch (_) { }
+          if (res.ok && !(data && String(data.success) === 'false')) {
+            orderMessage.textContent = 'Спасибо! Заказ принят — свяжемся по указанному контакту.';
+            orderMessage.className = 'order-message ok';
+            orderBtn.textContent = 'Заказ отправлен';
+            contactInput.value = '';
+            return;
+          }
+          lastError = new Error((data && (data.message || data.error)) || ('HTTP ' + res.status));
+          if (data && String(data.success) === 'false') break;
+        } catch (err) {
+          lastError = err;
+        }
+        if (attempt < 3) {
+          orderMessage.textContent = 'Связь прервалась, пробуем ещё раз…';
+          await new Promise(r => setTimeout(r, 700 * attempt));
+        }
+      }
+      throw lastError || new Error('unknown');
+    } catch (err) {
+      console.error('Заказ не отправлен:', err && err.message);
+      const subject = encodeURIComponent('Заказ с сайта: ' + selectedProduct.name + ', ' + total + ' ₽');
+      const text = encodeURIComponent(
+        'Корпус: ' + selectedProduct.name +
+        '\nЦвет: ' + selectedColor +
+        '\nФункции: ' + funcs +
+        '\nИтого: ' + total + ' ₽' +
+        '\nКонтакт: ' + contact
+      );
+      orderMessage.innerHTML =
+        'Не удалось отправить автоматически. ' +
+        '<a href="mailto:kvkazak3@gmail.com?subject=' + subject + '&body=' + text + '">Отправить заказ письмом</a> ' +
+        'или напишите на kvkazak3@gmail.com';
+      orderMessage.className = 'order-message err';
+      orderBtn.textContent = 'Заказать';
+      orderBtn.classList.remove('disabled');
+    }
   });
 
   contactInput.addEventListener('input', () => {
